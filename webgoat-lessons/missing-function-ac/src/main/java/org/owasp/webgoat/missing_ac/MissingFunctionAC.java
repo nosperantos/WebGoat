@@ -27,15 +27,15 @@ import org.owasp.webgoat.lessons.Lesson;
 import org.springframework.stereotype.Component;
 
 @Component
-public class MissingFunctionAC  extends Lesson {
+public class MissingFunctionAC extends Lesson {
 
-    @Override
-    public Category getDefaultCategory() {
-        return Category.ACCESS_CONTROL;
-    }
+  @Override
+  public Category getDefaultCategory() {
+    return Category.ACCESS_CONTROL;
+  }
 
-    @Override
-    public String getTitle() {
-        return "missing-function-access-control.title";
-    }
+  @Override
+  public String getTitle() {
+    return "missing-function-access-control.title";
+  }
 }

@@ -26,13 +26,13 @@ import org.owasp.webgoat.lessons.Category;
 import org.owasp.webgoat.lessons.Lesson;
 
 public class CrossSiteScriptingMitigation extends Lesson {
-    @Override
-    public Category getDefaultCategory() {
-        return Category.XSS;
-    }
+  @Override
+  public Category getDefaultCategory() {
+    return Category.XSS;
+  }
 
-    @Override
-    public String getTitle() {
-        return "xss-mitigation.title";
-    }
+  @Override
+  public String getTitle() {
+    return "xss-mitigation.title";
+  }
 }

@@ -26,9 +26,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.IntStream;
-
 import javax.annotation.PostConstruct;
-
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.owasp.webgoat.assignments.AssignmentEndpoint;
 import org.owasp.webgoat.assignments.AttackResult;
 import org.owasp.webgoat.session.WebSession;
@@ -42,9 +42,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
 /**
  * @author nbaars
  * @since 3/23/17.
@@ -52,39 +49,41 @@ import lombok.Getter;
 @RestController
 public class Flag extends AssignmentEndpoint {
 
-    public static final Map<Integer, String> FLAGS = new HashMap<>();
-    @Autowired
-    private UserTrackerRepository userTrackerRepository;
-    @Autowired
-    private WebSession webSession;
+  public static final Map<Integer, String> FLAGS = new HashMap<>();
+  @Autowired private UserTrackerRepository userTrackerRepository;
+  @Autowired private WebSession webSession;
 
-    @AllArgsConstructor
-    private class FlagPosted {
-        @Getter
-        private boolean lessonCompleted;
-    }
+  @AllArgsConstructor
+  private class FlagPosted {
+    @Getter private boolean lessonCompleted;
+  }
 
-    @PostConstruct
-    public void initFlags() {
-        IntStream.range(1, 10).forEach(i -> FLAGS.put(i, UUID.randomUUID().toString()));
-    }
+  @PostConstruct
+  public void initFlags() {
+    IntStream.range(1, 10).forEach(i -> FLAGS.put(i, UUID.randomUUID().toString()));
+  }
 
-    @RequestMapping(path = "/challenge/flag", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-    @ResponseBody
-    public AttackResult postFlag(@RequestParam String flag) {
-        UserTracker userTracker = userTrackerRepository.findByUser(webSession.getUserName());
-        String currentChallenge = webSession.getCurrentLesson().getName();
-        int challengeNumber = Integer.valueOf(currentChallenge.substring(currentChallenge.length() - 1, currentChallenge.length()));
-        String expectedFlag = FLAGS.get(challengeNumber);
-        final AttackResult attackResult;
-        if (expectedFlag.equals(flag)) {
-            userTracker.assignmentSolved(webSession.getCurrentLesson(), "Assignment" + challengeNumber);
-            attackResult = success(this).feedback("challenge.flag.correct").build();
-        } else {
-            userTracker.assignmentFailed(webSession.getCurrentLesson());
-            attackResult = failed(this).feedback("challenge.flag.incorrect").build();
-        }
-        userTrackerRepository.save(userTracker);
-        return attackResult;
+  @RequestMapping(
+      path = "/challenge/flag",
+      method = RequestMethod.POST,
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  @ResponseBody
+  public AttackResult postFlag(@RequestParam String flag) {
+    UserTracker userTracker = userTrackerRepository.findByUser(webSession.getUserName());
+    String currentChallenge = webSession.getCurrentLesson().getName();
+    int challengeNumber =
+        Integer.valueOf(
+            currentChallenge.substring(currentChallenge.length() - 1, currentChallenge.length()));
+    String expectedFlag = FLAGS.get(challengeNumber);
+    final AttackResult attackResult;
+    if (expectedFlag.equals(flag)) {
+      userTracker.assignmentSolved(webSession.getCurrentLesson(), "Assignment" + challengeNumber);
+      attackResult = success(this).feedback("challenge.flag.correct").build();
+    } else {
+      userTracker.assignmentFailed(webSession.getCurrentLesson());
+      attackResult = failed(this).feedback("challenge.flag.incorrect").build();
     }
+    userTrackerRepository.save(userTracker);
+    return attackResult;
+  }
 }

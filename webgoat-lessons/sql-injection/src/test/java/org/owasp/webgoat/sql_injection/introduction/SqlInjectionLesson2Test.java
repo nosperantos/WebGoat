@@ -22,6 +22,9 @@
 
 package org.owasp.webgoat.sql_injection.introduction;
 
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import org.hamcrest.CoreMatchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,17 +32,16 @@ import org.owasp.webgoat.sql_injection.SqlLessonTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 @RunWith(SpringJUnit4ClassRunner.class)
 public class SqlInjectionLesson2Test extends SqlLessonTest {
 
-    @Test
-    public void solution() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.post("/SqlInjection/attack2")
+  @Test
+  public void solution() throws Exception {
+    mockMvc
+        .perform(
+            MockMvcRequestBuilders.post("/SqlInjection/attack2")
                 .param("query", "SELECT department FROM employees WHERE userid=96134;"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.lessonCompleted", CoreMatchers.is(true)));
-    }
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.lessonCompleted", CoreMatchers.is(true)));
+  }
 }

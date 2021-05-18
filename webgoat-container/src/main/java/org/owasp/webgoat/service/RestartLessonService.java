@@ -41,21 +41,21 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @Slf4j
 public class RestartLessonService {
 
-    private final WebSession webSession;
-    private final UserTrackerRepository userTrackerRepository;
-    private final Flyway flywayLessons;
+  private final WebSession webSession;
+  private final UserTrackerRepository userTrackerRepository;
+  private final Flyway flywayLessons;
 
-    @RequestMapping(path = "/service/restartlesson.mvc", produces = "text/text")
-    @ResponseStatus(value = HttpStatus.OK)
-    public void restartLesson() {
-        Lesson al = webSession.getCurrentLesson();
-        log.debug("Restarting lesson: " + al);
+  @RequestMapping(path = "/service/restartlesson.mvc", produces = "text/text")
+  @ResponseStatus(value = HttpStatus.OK)
+  public void restartLesson() {
+    Lesson al = webSession.getCurrentLesson();
+    log.debug("Restarting lesson: " + al);
 
-        UserTracker userTracker = userTrackerRepository.findByUser(webSession.getUserName());
-        userTracker.reset(al);
-        userTrackerRepository.save(userTracker);
+    UserTracker userTracker = userTrackerRepository.findByUser(webSession.getUserName());
+    userTracker.reset(al);
+    userTrackerRepository.save(userTracker);
 
-        flywayLessons.clean();
-        flywayLessons.migrate();
-    }
+    flywayLessons.clean();
+    flywayLessons.migrate();
+  }
 }

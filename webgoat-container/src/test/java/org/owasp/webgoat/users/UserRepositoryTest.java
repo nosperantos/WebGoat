@@ -13,17 +13,16 @@ import org.springframework.test.context.junit4.SpringRunner;
 @ActiveProfiles({"test", "webgoat"})
 public class UserRepositoryTest {
 
-    @Autowired
-    private UserRepository userRepository;
+  @Autowired private UserRepository userRepository;
 
-    @Test
-    public void userShouldBeSaved() {
-        WebGoatUser user = new WebGoatUser("test", "password");
-        userRepository.saveAndFlush(user);
+  @Test
+  public void userShouldBeSaved() {
+    WebGoatUser user = new WebGoatUser("test", "password");
+    userRepository.saveAndFlush(user);
 
-        user = userRepository.findByUsername("test");
+    user = userRepository.findByUsername("test");
 
-        Assertions.assertThat(user.getUsername()).isEqualTo("test");
-        Assertions.assertThat(user.getPassword()).isEqualTo("password");
-    }
+    Assertions.assertThat(user.getUsername()).isEqualTo("test");
+    Assertions.assertThat(user.getPassword()).isEqualTo("password");
+  }
 }

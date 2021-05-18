@@ -29,13 +29,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class PathTraversal extends Lesson {
 
-    @Override
-    public Category getDefaultCategory() {
-        return Category.INJECTION;
-    }
+  @Override
+  public Category getDefaultCategory() {
+    return Category.INJECTION;
+  }
 
-    @Override
-    public String getTitle() {
-        return "path-traversal-title";
-    }
+  @Override
+  public String getTitle() {
+    return "path-traversal-title";
+  }
 }

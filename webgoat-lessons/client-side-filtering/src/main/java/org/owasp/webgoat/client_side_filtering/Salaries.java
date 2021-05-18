@@ -22,6 +22,16 @@
 
 package org.owasp.webgoat.client_side_filtering;
 
+import java.io.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.annotation.PostConstruct;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
@@ -33,74 +43,65 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
-import javax.annotation.PostConstruct;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
-import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 @RestController
 @Slf4j
 public class Salaries {
 
-    @Value("${webgoat.user.directory}")
-    private String webGoatHomeDirectory;
+  @Value("${webgoat.user.directory}")
+  private String webGoatHomeDirectory;
 
-    @PostConstruct
-    public void copyFiles() {
-        ClassPathResource classPathResource = new ClassPathResource("employees.xml");
-        File targetDirectory = new File(webGoatHomeDirectory, "/ClientSideFiltering");
-        if (!targetDirectory.exists()) {
-            targetDirectory.mkdir();
-        }
-        try {
-            FileCopyUtils.copy(classPathResource.getInputStream(), new FileOutputStream(new File(targetDirectory, "employees.xml")));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+  @PostConstruct
+  public void copyFiles() {
+    ClassPathResource classPathResource = new ClassPathResource("employees.xml");
+    File targetDirectory = new File(webGoatHomeDirectory, "/ClientSideFiltering");
+    if (!targetDirectory.exists()) {
+      targetDirectory.mkdir();
     }
-
-    @GetMapping("clientSideFiltering/salaries")
-    @ResponseBody
-    public List<Map<String, Object>> invoke() {
-        NodeList nodes = null;
-        File d = new File(webGoatHomeDirectory, "ClientSideFiltering/employees.xml");
-        XPathFactory factory = XPathFactory.newInstance();
-        XPath path = factory.newXPath();
-        try (InputStream is = new FileInputStream(d)) {
-            InputSource inputSource = new InputSource(is);
-
-            StringBuffer sb = new StringBuffer();
-
-            sb.append("/Employees/Employee/UserID | ");
-            sb.append("/Employees/Employee/FirstName | ");
-            sb.append("/Employees/Employee/LastName | ");
-            sb.append("/Employees/Employee/SSN | ");
-            sb.append("/Employees/Employee/Salary ");
-
-            String expression = sb.toString();
-            nodes = (NodeList) path.evaluate(expression, inputSource, XPathConstants.NODESET);
-        } catch (XPathExpressionException e) {
-            log.error("Unable to parse xml", e);
-        } catch (IOException e) {
-            log.error("Unable to read employees.xml at location: '{}'", d);
-        }
-        int columns = 5;
-        List json = new ArrayList();
-        java.util.Map<String, Object> employeeJson = new HashMap<>();
-        for (int i = 0; i < nodes.getLength(); i++) {
-            if (i % columns == 0) {
-                employeeJson = new HashMap<>();
-                json.add(employeeJson);
-            }
-            Node node = nodes.item(i);
-            employeeJson.put(node.getNodeName(), node.getTextContent());
-        }
-        return json;
+    try {
+      FileCopyUtils.copy(
+          classPathResource.getInputStream(),
+          new FileOutputStream(new File(targetDirectory, "employees.xml")));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
+  }
+
+  @GetMapping("clientSideFiltering/salaries")
+  @ResponseBody
+  public List<Map<String, Object>> invoke() {
+    NodeList nodes = null;
+    File d = new File(webGoatHomeDirectory, "ClientSideFiltering/employees.xml");
+    XPathFactory factory = XPathFactory.newInstance();
+    XPath path = factory.newXPath();
+    try (InputStream is = new FileInputStream(d)) {
+      InputSource inputSource = new InputSource(is);
+
+      StringBuffer sb = new StringBuffer();
+
+      sb.append("/Employees/Employee/UserID | ");
+      sb.append("/Employees/Employee/FirstName | ");
+      sb.append("/Employees/Employee/LastName | ");
+      sb.append("/Employees/Employee/SSN | ");
+      sb.append("/Employees/Employee/Salary ");
+
+      String expression = sb.toString();
+      nodes = (NodeList) path.evaluate(expression, inputSource, XPathConstants.NODESET);
+    } catch (XPathExpressionException e) {
+      log.error("Unable to parse xml", e);
+    } catch (IOException e) {
+      log.error("Unable to read employees.xml at location: '{}'", d);
+    }
+    int columns = 5;
+    List json = new ArrayList();
+    java.util.Map<String, Object> employeeJson = new HashMap<>();
+    for (int i = 0; i < nodes.getLength(); i++) {
+      if (i % columns == 0) {
+        employeeJson = new HashMap<>();
+        json.add(employeeJson);
+      }
+      Node node = nodes.item(i);
+      employeeJson.put(node.getNodeName(), node.getTextContent());
+    }
+    return json;
+  }
 }

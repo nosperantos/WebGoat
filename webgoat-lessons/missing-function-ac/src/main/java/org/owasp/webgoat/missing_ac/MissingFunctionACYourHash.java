@@ -33,24 +33,36 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@AssignmentHints({"access-control.hash.hint1","access-control.hash.hint2","access-control.hash.hint3",
-        "access-control.hash.hint4","access-control.hash.hint5","access-control.hash.hint6","access-control.hash.hint7",
-        "access-control.hash.hint8","access-control.hash.hint9","access-control.hash.hint10","access-control.hash.hint11","access-control.hash.hint12"})
+@AssignmentHints({
+  "access-control.hash.hint1",
+  "access-control.hash.hint2",
+  "access-control.hash.hint3",
+  "access-control.hash.hint4",
+  "access-control.hash.hint5",
+  "access-control.hash.hint6",
+  "access-control.hash.hint7",
+  "access-control.hash.hint8",
+  "access-control.hash.hint9",
+  "access-control.hash.hint10",
+  "access-control.hash.hint11",
+  "access-control.hash.hint12"
+})
 public class MissingFunctionACYourHash extends AssignmentEndpoint {
 
-    @Autowired
-    private UserService userService;
+  @Autowired private UserService userService;
 
-    @PostMapping(path = "/access-control/user-hash", produces = {"application/json"})
-    @ResponseBody
-    public AttackResult completed(String userHash) {
-        String currentUser = getWebSession().getUserName();
-        WebGoatUser user = userService.loadUserByUsername(currentUser);
-        DisplayUser displayUser = new DisplayUser(user);
-        if (userHash.equals(displayUser.getUserHash())) {
-            return success(this).feedback("access-control.hash.success").build();
-        } else {
-            return failed(this).feedback("access-control.hash.close").build();
-        }
+  @PostMapping(
+      path = "/access-control/user-hash",
+      produces = {"application/json"})
+  @ResponseBody
+  public AttackResult completed(String userHash) {
+    String currentUser = getWebSession().getUserName();
+    WebGoatUser user = userService.loadUserByUsername(currentUser);
+    DisplayUser displayUser = new DisplayUser(user);
+    if (userHash.equals(displayUser.getUserHash())) {
+      return success(this).feedback("access-control.hash.success").build();
+    } else {
+      return failed(this).feedback("access-control.hash.close").build();
     }
+  }
 }

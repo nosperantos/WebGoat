@@ -22,6 +22,13 @@
 
 package org.owasp.webwolf;
 
+import static org.springframework.http.MediaType.ALL_VALUE;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import javax.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -37,85 +44,76 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
 
-import javax.servlet.http.HttpServletRequest;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.ArrayList;
-
-import static org.springframework.http.MediaType.ALL_VALUE;
-
-/**
- * Controller for uploading a file
- */
+/** Controller for uploading a file */
 @Controller
 @Slf4j
 public class FileServer {
 
-    @Value("${webwolf.fileserver.location}")
-    private String fileLocation;
-    @Value("${server.address}")
-    private String server;
-    @Value("${server.port}")
-    private int port;
+  @Value("${webwolf.fileserver.location}")
+  private String fileLocation;
 
-    @RequestMapping(path = "/tmpdir", consumes = ALL_VALUE, produces = MediaType.TEXT_PLAIN_VALUE)
-    @ResponseBody
-    public String getFileLocation() {
-        return fileLocation;
+  @Value("${server.address}")
+  private String server;
+
+  @Value("${server.port}")
+  private int port;
+
+  @RequestMapping(path = "/tmpdir", consumes = ALL_VALUE, produces = MediaType.TEXT_PLAIN_VALUE)
+  @ResponseBody
+  public String getFileLocation() {
+    return fileLocation;
+  }
+
+  @PostMapping(value = "/WebWolf/fileupload")
+  public ModelAndView importFile(@RequestParam("file") MultipartFile myFile) throws IOException {
+    WebGoatUser user =
+        (WebGoatUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    File destinationDir = new File(fileLocation, user.getUsername());
+    destinationDir.mkdirs();
+    myFile.transferTo(new File(destinationDir, myFile.getOriginalFilename()));
+    log.debug("File saved to {}", new File(destinationDir, myFile.getOriginalFilename()));
+    Files.createFile(new File(destinationDir, user.getUsername() + "_changed").toPath());
+
+    ModelMap model = new ModelMap();
+    model.addAttribute("uploadSuccess", "File uploaded successful");
+    return new ModelAndView(new RedirectView("files", true), model);
+  }
+
+  @AllArgsConstructor
+  @Getter
+  private class UploadedFile {
+    private final String name;
+    private final String size;
+    private final String link;
+  }
+
+  @GetMapping(value = "/WebWolf/files")
+  public ModelAndView getFiles(HttpServletRequest request) {
+    WebGoatUser user =
+        (WebGoatUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    String username = user.getUsername();
+    File destinationDir = new File(fileLocation, username);
+
+    ModelAndView modelAndView = new ModelAndView();
+    modelAndView.setViewName("files");
+    File changeIndicatorFile = new File(destinationDir, user.getUsername() + "_changed");
+    if (changeIndicatorFile.exists()) {
+      modelAndView.addObject("uploadSuccess", request.getParameter("uploadSuccess"));
+    }
+    changeIndicatorFile.delete();
+
+    var uploadedFiles = new ArrayList<>();
+    File[] files = destinationDir.listFiles(File::isFile);
+    if (files != null) {
+      for (File file : files) {
+        String size = FileUtils.byteCountToDisplaySize(file.length());
+        String link = String.format("files/%s/%s", username, file.getName());
+        uploadedFiles.add(new UploadedFile(file.getName(), size, link));
+      }
     }
 
-    @PostMapping(value = "/WebWolf/fileupload")
-    public ModelAndView importFile(@RequestParam("file") MultipartFile myFile) throws IOException {
-        WebGoatUser user = (WebGoatUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        File destinationDir = new File(fileLocation, user.getUsername());
-        destinationDir.mkdirs();
-        myFile.transferTo(new File(destinationDir, myFile.getOriginalFilename()));
-        log.debug("File saved to {}", new File(destinationDir, myFile.getOriginalFilename()));
-        Files.createFile(new File(destinationDir, user.getUsername() + "_changed").toPath());
-
-        ModelMap model = new ModelMap();
-        model.addAttribute("uploadSuccess", "File uploaded successful");
-        return new ModelAndView(
-                new RedirectView("files", true),
-                model
-        );
-    }
-
-    @AllArgsConstructor
-    @Getter
-    private class UploadedFile {
-        private final String name;
-        private final String size;
-        private final String link;
-    }
-
-    @GetMapping(value = "/WebWolf/files")
-    public ModelAndView getFiles(HttpServletRequest request) {
-        WebGoatUser user = (WebGoatUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String username = user.getUsername();
-        File destinationDir = new File(fileLocation, username);
-
-        ModelAndView modelAndView = new ModelAndView();
-        modelAndView.setViewName("files");
-        File changeIndicatorFile = new File(destinationDir, user.getUsername() + "_changed");
-        if (changeIndicatorFile.exists()) {
-            modelAndView.addObject("uploadSuccess", request.getParameter("uploadSuccess"));
-        }
-        changeIndicatorFile.delete();
-
-        var uploadedFiles = new ArrayList<>();
-        File[] files = destinationDir.listFiles(File::isFile);
-        if (files != null) {
-            for (File file : files) {
-                String size = FileUtils.byteCountToDisplaySize(file.length());
-                String link = String.format("files/%s/%s", username, file.getName());
-                uploadedFiles.add(new UploadedFile(file.getName(), size, link));
-            }
-        }
-
-        modelAndView.addObject("files", uploadedFiles);
-        modelAndView.addObject("webwolf_url", "http://" + server + ":" + port);
-        return modelAndView;
-    }
+    modelAndView.addObject("files", uploadedFiles);
+    modelAndView.addObject("webwolf_url", "http://" + server + ":" + port);
+    return modelAndView;
+  }
 }

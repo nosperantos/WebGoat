@@ -22,40 +22,41 @@
 
 package org.owasp.webgoat.xss;
 
+import lombok.extern.slf4j.Slf4j;
 import org.owasp.webgoat.assignments.AssignmentEndpoint;
 import org.owasp.webgoat.assignments.AssignmentHints;
 import org.owasp.webgoat.assignments.AttackResult;
 import org.springframework.web.bind.annotation.*;
 
-import lombok.extern.slf4j.Slf4j;
-
-//@RestController
+// @RestController
 @Deprecated
-//TODO This assignment seems not to be in use in the UI
-//it is there to make sure the lesson can be marked complete
-//in order to restore it, make it accessible through the UI and uncomment RestController@Slf4j
+// TODO This assignment seems not to be in use in the UI
+// it is there to make sure the lesson can be marked complete
+// in order to restore it, make it accessible through the UI and uncomment RestController@Slf4j
 @Slf4j
 @AssignmentHints(value = {"xss-mitigation-4-hint1"})
 public class CrossSiteScriptingLesson4 extends AssignmentEndpoint {
 
-    @PostMapping("/CrossSiteScripting/attack4")
-    @ResponseBody
-    public AttackResult completed(@RequestParam String editor2) {
+  @PostMapping("/CrossSiteScripting/attack4")
+  @ResponseBody
+  public AttackResult completed(@RequestParam String editor2) {
 
-        String editor = editor2.replaceAll("\\<.*?>", "");
-        log.debug(editor);
+    String editor = editor2.replaceAll("\\<.*?>", "");
+    log.debug(editor);
 
-        if ((editor.contains("Policy.getInstance(\"antisamy-slashdot.xml\"") || editor.contains(".scan(newComment, \"antisamy-slashdot.xml\"") || editor.contains(".scan(newComment, new File(\"antisamy-slashdot.xml\")")) &&
-                editor.contains("new AntiSamy();") &&
-                editor.contains(".scan(newComment,") &&
-                editor.contains("CleanResults") &&
-                editor.contains("MyCommentDAO.addComment(threadID, userID") &&
-                editor.contains(".getCleanHTML());")) {
-            log.debug("true");
-            return success(this).feedback("xss-mitigation-4-success").build();
-        } else {
-            log.debug("false");
-            return failed(this).feedback("xss-mitigation-4-failed").build();
-        }
+    if ((editor.contains("Policy.getInstance(\"antisamy-slashdot.xml\"")
+            || editor.contains(".scan(newComment, \"antisamy-slashdot.xml\"")
+            || editor.contains(".scan(newComment, new File(\"antisamy-slashdot.xml\")"))
+        && editor.contains("new AntiSamy();")
+        && editor.contains(".scan(newComment,")
+        && editor.contains("CleanResults")
+        && editor.contains("MyCommentDAO.addComment(threadID, userID")
+        && editor.contains(".getCleanHTML());")) {
+      log.debug("true");
+      return success(this).feedback("xss-mitigation-4-success").build();
+    } else {
+      log.debug("false");
+      return failed(this).feedback("xss-mitigation-4-failed").build();
     }
+  }
 }

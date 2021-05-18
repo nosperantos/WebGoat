@@ -22,6 +22,8 @@
 
 package org.owasp.webwolf.user;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -32,9 +34,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
-
 /**
  * @author nbaars
  * @since 3/19/17.
@@ -44,26 +43,29 @@ import javax.validation.Valid;
 @Slf4j
 public class RegistrationController {
 
-    private UserValidator userValidator;
-    private UserService userService;
-    private AuthenticationManager authenticationManager;
+  private UserValidator userValidator;
+  private UserService userService;
+  private AuthenticationManager authenticationManager;
 
-    @GetMapping("/registration")
-    public String showForm(UserForm userForm) {
-        return "registration";
+  @GetMapping("/registration")
+  public String showForm(UserForm userForm) {
+    return "registration";
+  }
+
+  @PostMapping("/register.mvc")
+  @SneakyThrows
+  public String registration(
+      @ModelAttribute("userForm") @Valid UserForm userForm,
+      BindingResult bindingResult,
+      HttpServletRequest request) {
+    userValidator.validate(userForm, bindingResult);
+
+    if (bindingResult.hasErrors()) {
+      return "registration";
     }
+    userService.addUser(userForm.getUsername(), userForm.getPassword());
+    request.login(userForm.getUsername(), userForm.getPassword());
 
-    @PostMapping("/register.mvc")
-    @SneakyThrows
-    public String registration(@ModelAttribute("userForm") @Valid UserForm userForm, BindingResult bindingResult, HttpServletRequest request) {
-        userValidator.validate(userForm, bindingResult);
-
-        if (bindingResult.hasErrors()) {
-            return "registration";
-        }
-        userService.addUser(userForm.getUsername(), userForm.getPassword());
-        request.login(userForm.getUsername(), userForm.getPassword());
-
-        return "redirect:/WebWolf/home";
-    }
+    return "redirect:/WebWolf/home";
+  }
 }

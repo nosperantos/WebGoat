@@ -35,23 +35,23 @@ import org.springframework.validation.Validator;
 @AllArgsConstructor
 public class UserValidator implements Validator {
 
-    private final UserRepository userRepository;
+  private final UserRepository userRepository;
 
-    @Override
-    public boolean supports(Class<?> aClass) {
-        return UserForm.class.equals(aClass);
+  @Override
+  public boolean supports(Class<?> aClass) {
+    return UserForm.class.equals(aClass);
+  }
+
+  @Override
+  public void validate(Object o, Errors errors) {
+    UserForm userForm = (UserForm) o;
+
+    if (userRepository.findByUsername(userForm.getUsername()) != null) {
+      errors.rejectValue("username", "username.duplicate");
     }
 
-    @Override
-    public void validate(Object o, Errors errors) {
-        UserForm userForm = (UserForm) o;
-
-        if (userRepository.findByUsername(userForm.getUsername()) != null) {
-            errors.rejectValue("username", "username.duplicate");
-        }
-
-        if (!userForm.getMatchingPassword().equals(userForm.getPassword())) {
-            errors.rejectValue("matchingPassword", "password.diff");
-        }
+    if (!userForm.getMatchingPassword().equals(userForm.getPassword())) {
+      errors.rejectValue("matchingPassword", "password.diff");
     }
+  }
 }
