@@ -26,7 +26,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.time.LocalDateTime;
 import java.util.List;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,34 +36,31 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ExtendWith(SpringExtension.class)
 public class MailboxRepositoryTest {
 
+  @Autowired private MailboxRepository mailboxRepository;
 
-    @Autowired
-    private MailboxRepository mailboxRepository;
+  @Test
+  public void emailShouldBeSaved() {
+    Email email = new Email();
+    email.setTime(LocalDateTime.now());
+    email.setTitle("test");
+    email.setSender("test@test.com");
+    email.setContents("test");
+    email.setRecipient("someone@webwolf.org");
+    mailboxRepository.save(email);
+  }
 
-    @Test
-    public void emailShouldBeSaved() {
-        Email email = new Email();
-        email.setTime(LocalDateTime.now());
-        email.setTitle("test");
-        email.setSender("test@test.com");
-        email.setContents("test");
-        email.setRecipient("someone@webwolf.org");
-        mailboxRepository.save(email);
-    }
+  @Test
+  public void savedEmailShouldBeFoundByReceipient() {
+    Email email = new Email();
+    email.setTime(LocalDateTime.now());
+    email.setTitle("test");
+    email.setSender("test@test.com");
+    email.setContents("test");
+    email.setRecipient("someone@webwolf.org");
+    mailboxRepository.saveAndFlush(email);
 
-    @Test
-    public void savedEmailShouldBeFoundByReceipient() {
-        Email email = new Email();
-        email.setTime(LocalDateTime.now());
-        email.setTitle("test");
-        email.setSender("test@test.com");
-        email.setContents("test");
-        email.setRecipient("someone@webwolf.org");
-        mailboxRepository.saveAndFlush(email);
+    List<Email> emails = mailboxRepository.findByRecipientOrderByTimeDesc("someone@webwolf.org");
 
-        List<Email> emails = mailboxRepository.findByRecipientOrderByTimeDesc("someone@webwolf.org");
-
-        assertEquals(emails.size(), 1);
-    }
-
+    assertEquals(emails.size(), 1);
+  }
 }

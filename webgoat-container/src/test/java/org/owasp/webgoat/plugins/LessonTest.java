@@ -1,5 +1,8 @@
 package org.owasp.webgoat.plugins;
 
+import static org.mockito.Mockito.when;
+
+import java.util.Locale;
 import org.junit.Before;
 import org.owasp.webgoat.i18n.Language;
 import org.owasp.webgoat.i18n.PluginMessages;
@@ -12,35 +15,29 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.context.WebApplicationContext;
 
-import java.util.Locale;
-
-import static org.mockito.Mockito.when;
-
 /**
  * @author nbaars
  * @since 5/20/17.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@TestPropertySource(locations = {"classpath:/application-webgoat.properties", "classpath:/application-test.properties"})
+@TestPropertySource(
+    locations = {
+      "classpath:/application-webgoat.properties",
+      "classpath:/application-test.properties"
+    })
 public abstract class LessonTest {
 
-    @LocalServerPort
-    protected int localPort;
-    protected MockMvc mockMvc;
-    @Autowired
-    protected WebApplicationContext wac;
-    @Autowired
-    protected PluginMessages messages;
-    @MockBean
-    protected WebSession webSession;
+  @LocalServerPort protected int localPort;
+  protected MockMvc mockMvc;
+  @Autowired protected WebApplicationContext wac;
+  @Autowired protected PluginMessages messages;
+  @MockBean protected WebSession webSession;
 
-    @MockBean
-    private Language language;
+  @MockBean private Language language;
 
-    @Before
-    public void init() {
-        when(webSession.getUserName()).thenReturn("unit-test");
-        when(language.getLocale()).thenReturn(Locale.getDefault());
-    }
-
+  @Before
+  public void init() {
+    when(webSession.getUserName()).thenReturn("unit-test");
+    when(language.getLocale()).thenReturn(Locale.getDefault());
+  }
 }

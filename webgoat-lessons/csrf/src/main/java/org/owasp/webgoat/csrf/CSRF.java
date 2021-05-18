@@ -22,23 +22,20 @@
 
 package org.owasp.webgoat.csrf;
 
-import com.beust.jcommander.internal.Lists;
 import org.owasp.webgoat.lessons.Category;
 import org.owasp.webgoat.lessons.Lesson;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
-/**
- * Created by jason on 9/29/17.
- */
+/** Created by jason on 9/29/17. */
 @Component
 public class CSRF extends Lesson {
-    @Override
-    public Category getDefaultCategory() {
-        return Category.REQUEST_FORGERIES;
-    }
+  @Override
+  public Category getDefaultCategory() {
+    return Category.REQUEST_FORGERIES;
+  }
 
-    @Override
-    public String getTitle() { return "csrf.title"; }
+  @Override
+  public String getTitle() {
+    return "csrf.title";
+  }
 }

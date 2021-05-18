@@ -22,6 +22,11 @@
 
 package org.owasp.webgoat.ssrf;
 
+import static org.hamcrest.Matchers.is;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,41 +34,36 @@ import org.owasp.webgoat.plugins.LessonTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import static org.hamcrest.Matchers.is;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 /**
- * @author afry 
+ * @author afry
  * @since 12/28/18.
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 public class SSRFTest2 extends LessonTest {
 
-    @Autowired
-    private SSRF ssrf;
+  @Autowired private SSRF ssrf;
 
-    @Before
-    public void setup() {
-        when(webSession.getCurrentLesson()).thenReturn(ssrf);
-        this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).build();
-    }
+  @Before
+  public void setup() {
+    when(webSession.getCurrentLesson()).thenReturn(ssrf);
+    this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).build();
+  }
 
-    @Test
-    public void modifyUrlIfconfigPro() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.post("/SSRF/task2")
-                .param("url", "http://ifconfig.pro"))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.lessonCompleted", is(true)));
-    }
+  @Test
+  public void modifyUrlIfconfigPro() throws Exception {
+    mockMvc
+        .perform(MockMvcRequestBuilders.post("/SSRF/task2").param("url", "http://ifconfig.pro"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.lessonCompleted", is(true)));
+  }
 
-    @Test
-    public void modifyUrlCat() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.post("/SSRF/task2")
-                .param("url", "images/cat.jpg"))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.lessonCompleted", is(false)));
-    }
+  @Test
+  public void modifyUrlCat() throws Exception {
+    mockMvc
+        .perform(MockMvcRequestBuilders.post("/SSRF/task2").param("url", "images/cat.jpg"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.lessonCompleted", is(false)));
+  }
 }

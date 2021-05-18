@@ -22,20 +22,17 @@
 
 package org.owasp.webgoat.sql_injection.mitigation;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.*;
-
-import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import javax.sql.DataSource;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * @author nbaars
@@ -46,38 +43,48 @@ import java.util.List;
 @Slf4j
 public class Servers {
 
-    private final DataSource dataSource;
+  private final DataSource dataSource;
 
-    @AllArgsConstructor
-    @Getter
-    private class Server {
+  @AllArgsConstructor
+  @Getter
+  private class Server {
 
-        private String id;
-        private String hostname;
-        private String ip;
-        private String mac;
-        private String status;
-        private String description;
+    private String id;
+    private String hostname;
+    private String ip;
+    private String mac;
+    private String status;
+    private String description;
+  }
+
+  public Servers(DataSource dataSource) {
+    this.dataSource = dataSource;
+  }
+
+  @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+  @ResponseBody
+  public List<Server> sort(@RequestParam String column) throws Exception {
+    List<Server> servers = new ArrayList<>();
+
+    try (Connection connection = dataSource.getConnection();
+        PreparedStatement preparedStatement =
+            connection.prepareStatement(
+                "select id, hostname, ip, mac, status, description from servers  where status <>"
+                    + " 'out of order' order by "
+                    + column)) {
+      ResultSet rs = preparedStatement.executeQuery();
+      while (rs.next()) {
+        Server server =
+            new Server(
+                rs.getString(1),
+                rs.getString(2),
+                rs.getString(3),
+                rs.getString(4),
+                rs.getString(5),
+                rs.getString(6));
+        servers.add(server);
+      }
     }
-
-    public Servers(DataSource dataSource) {
-        this.dataSource = dataSource;
-    }
-
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    @ResponseBody
-    public List<Server> sort(@RequestParam String column) throws Exception {
-        List<Server> servers = new ArrayList<>();
-
-        try (Connection connection = dataSource.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement("select id, hostname, ip, mac, status, description from servers  where status <> 'out of order' order by " + column)) {
-            ResultSet rs = preparedStatement.executeQuery();
-            while (rs.next()) {
-                Server server = new Server(rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5), rs.getString(6));
-                servers.add(server);
-            }
-        }
-        return servers;
-    }
-
+    return servers;
+  }
 }

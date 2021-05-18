@@ -22,78 +22,101 @@
 
 package org.owasp.webgoat.http_proxies;
 
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
+
 import org.hamcrest.CoreMatchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.owasp.webgoat.assignments.AssignmentEndpointTest;
-import org.owasp.webgoat.http_proxies.HttpBasicsInterceptRequest;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
 
 @RunWith(MockitoJUnitRunner.class)
 public class HttpBasicsInterceptRequestTest extends AssignmentEndpointTest {
 
-    private MockMvc mockMvc;
+  private MockMvc mockMvc;
 
-    @Before
-    public void setup() {
-        HttpBasicsInterceptRequest httpBasicsInterceptRequest = new HttpBasicsInterceptRequest();
-        init(httpBasicsInterceptRequest);
-        this.mockMvc = standaloneSetup(httpBasicsInterceptRequest).build();
-    }
+  @Before
+  public void setup() {
+    HttpBasicsInterceptRequest httpBasicsInterceptRequest = new HttpBasicsInterceptRequest();
+    init(httpBasicsInterceptRequest);
+    this.mockMvc = standaloneSetup(httpBasicsInterceptRequest).build();
+  }
 
-    @Test
-    public void success() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get("/HttpProxies/intercept-request")
+  @Test
+  public void success() throws Exception {
+    mockMvc
+        .perform(
+            MockMvcRequestBuilders.get("/HttpProxies/intercept-request")
                 .header("x-request-intercepted", "true")
                 .param("changeMe", "Requests are tampered easily"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.feedback", CoreMatchers.is(messages.getMessage("http-proxies.intercept.success"))))
-                .andExpect(jsonPath("$.lessonCompleted", CoreMatchers.is(true)));
-    }
+        .andExpect(status().isOk())
+        .andExpect(
+            jsonPath(
+                "$.feedback",
+                CoreMatchers.is(messages.getMessage("http-proxies.intercept.success"))))
+        .andExpect(jsonPath("$.lessonCompleted", CoreMatchers.is(true)));
+  }
 
-    @Test
-    public void failure() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get("/HttpProxies/intercept-request")
+  @Test
+  public void failure() throws Exception {
+    mockMvc
+        .perform(
+            MockMvcRequestBuilders.get("/HttpProxies/intercept-request")
                 .header("x-request-intercepted", "false")
                 .param("changeMe", "Requests are tampered easily"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.feedback", CoreMatchers.is(messages.getMessage("http-proxies.intercept.failure"))))
-                .andExpect(jsonPath("$.lessonCompleted", CoreMatchers.is(false)));
-    }
+        .andExpect(status().isOk())
+        .andExpect(
+            jsonPath(
+                "$.feedback",
+                CoreMatchers.is(messages.getMessage("http-proxies.intercept.failure"))))
+        .andExpect(jsonPath("$.lessonCompleted", CoreMatchers.is(false)));
+  }
 
-    @Test
-    public void missingParam() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get("/HttpProxies/intercept-request")
+  @Test
+  public void missingParam() throws Exception {
+    mockMvc
+        .perform(
+            MockMvcRequestBuilders.get("/HttpProxies/intercept-request")
                 .header("x-request-intercepted", "false"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.feedback", CoreMatchers.is(messages.getMessage("http-proxies.intercept.failure"))))
-                .andExpect(jsonPath("$.lessonCompleted", CoreMatchers.is(false)));
-    }
+        .andExpect(status().isOk())
+        .andExpect(
+            jsonPath(
+                "$.feedback",
+                CoreMatchers.is(messages.getMessage("http-proxies.intercept.failure"))))
+        .andExpect(jsonPath("$.lessonCompleted", CoreMatchers.is(false)));
+  }
 
-    @Test
-    public void missingHeader() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get("/HttpProxies/intercept-request")
+  @Test
+  public void missingHeader() throws Exception {
+    mockMvc
+        .perform(
+            MockMvcRequestBuilders.get("/HttpProxies/intercept-request")
                 .param("changeMe", "Requests are tampered easily"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.feedback", CoreMatchers.is(messages.getMessage("http-proxies.intercept.failure"))))
-                .andExpect(jsonPath("$.lessonCompleted", CoreMatchers.is(false)));
-    }
+        .andExpect(status().isOk())
+        .andExpect(
+            jsonPath(
+                "$.feedback",
+                CoreMatchers.is(messages.getMessage("http-proxies.intercept.failure"))))
+        .andExpect(jsonPath("$.lessonCompleted", CoreMatchers.is(false)));
+  }
 
-    @Test
-    public void whenPostAssignmentShouldNotPass() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.post("/HttpProxies/intercept-request")
+  @Test
+  public void whenPostAssignmentShouldNotPass() throws Exception {
+    mockMvc
+        .perform(
+            MockMvcRequestBuilders.post("/HttpProxies/intercept-request")
                 .header("x-request-intercepted", "true")
                 .param("changeMe", "Requests are tampered easily"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.feedback", CoreMatchers.is(messages.getMessage("http-proxies.intercept.failure"))))
-                .andExpect(jsonPath("$.lessonCompleted", CoreMatchers.is(false)));
-    }
+        .andExpect(status().isOk())
+        .andExpect(
+            jsonPath(
+                "$.feedback",
+                CoreMatchers.is(messages.getMessage("http-proxies.intercept.failure"))))
+        .andExpect(jsonPath("$.lessonCompleted", CoreMatchers.is(false)));
+  }
 }

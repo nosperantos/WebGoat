@@ -28,13 +28,13 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class CrossSiteScripting extends Lesson {
-    @Override
-    public Category getDefaultCategory() {
-        return Category.XSS;
-    }
+  @Override
+  public Category getDefaultCategory() {
+    return Category.XSS;
+  }
 
-    @Override
-    public String getTitle() {
-        return "xss.title";
-    }
+  @Override
+  public String getTitle() {
+    return "xss.title";
+  }
 }

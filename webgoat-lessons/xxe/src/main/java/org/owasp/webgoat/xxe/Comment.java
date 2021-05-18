@@ -22,12 +22,11 @@
 
 package org.owasp.webgoat.xxe;
 
+import javax.xml.bind.annotation.XmlRootElement;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * @author nbaars
@@ -39,7 +38,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 @NoArgsConstructor
 @XmlRootElement
 public class Comment {
-    private String user;
-    private String dateTime;
-    private String text;
+  private String user;
+  private String dateTime;
+  private String text;
 }

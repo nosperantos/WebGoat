@@ -33,13 +33,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class JWT extends Lesson {
 
-    @Override
-    public Category getDefaultCategory() {
-        return Category.AUTHENTICATION;
-    }
+  @Override
+  public Category getDefaultCategory() {
+    return Category.AUTHENTICATION;
+  }
 
-    @Override
-    public String getTitle() {
-        return "jwt.title";
-    }
+  @Override
+  public String getTitle() {
+    return "jwt.title";
+  }
 }
