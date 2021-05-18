@@ -22,8 +22,20 @@
 
 package org.owasp.webgoat.xxe;
 
+import static java.util.Optional.empty;
+import static java.util.Optional.of;
+
 import com.beust.jcommander.internal.Lists;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.*;
+import java.util.stream.Collectors;
+import javax.xml.XMLConstants;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamException;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -31,21 +43,6 @@ import org.owasp.webgoat.session.WebSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-
-import javax.xml.XMLConstants;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import java.io.IOException;
-import java.io.StringReader;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static java.util.Optional.empty;
-import static java.util.Optional.of;
 
 /**
  * @author nbaars
@@ -55,69 +52,75 @@ import static java.util.Optional.of;
 @Scope("singleton")
 public class Comments {
 
-    @Autowired
-    protected WebSession webSession;
+  @Autowired protected WebSession webSession;
 
-    protected static DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd, HH:mm:ss");
+  protected static DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd, HH:mm:ss");
 
-    private static final Map<String, List<Comment>> userComments = new HashMap<>();
-    private static final List<Comment> comments = new ArrayList<>();
+  private static final Map<String, List<Comment>> userComments = new HashMap<>();
+  private static final List<Comment> comments = new ArrayList<>();
 
-    static {
-        comments.add(new Comment("webgoat", DateTime.now().toString(fmt), "Silly cat...."));
-        comments.add(new Comment("guest", DateTime.now().toString(fmt), "I think I will use this picture in one of my projects."));
-        comments.add(new Comment("guest", DateTime.now().toString(fmt), "Lol!! :-)."));
+  static {
+    comments.add(new Comment("webgoat", DateTime.now().toString(fmt), "Silly cat...."));
+    comments.add(
+        new Comment(
+            "guest",
+            DateTime.now().toString(fmt),
+            "I think I will use this picture in one of my projects."));
+    comments.add(new Comment("guest", DateTime.now().toString(fmt), "Lol!! :-)."));
+  }
+
+  protected Collection<Comment> getComments() {
+    Collection<Comment> allComments = Lists.newArrayList();
+    Collection<Comment> xmlComments = userComments.get(webSession.getUserName());
+    if (xmlComments != null) {
+      allComments.addAll(xmlComments);
+    }
+    allComments.addAll(comments);
+    return allComments.stream()
+        .sorted(Comparator.comparing(Comment::getDateTime).reversed())
+        .collect(Collectors.toList());
+  }
+
+  /**
+   * Notice this parse method is not a "trick" to get the XXE working, we need to catch some of the
+   * exception which might happen during when users post message (we want to give feedback track
+   * progress etc). In real life the XmlMapper bean defined above will be used automatically and the
+   * Comment class can be directly used in the controller method (instead of a String)
+   */
+  protected Comment parseXml(String xml, boolean secure) throws JAXBException, XMLStreamException {
+    var jc = JAXBContext.newInstance(Comment.class);
+    var xif = XMLInputFactory.newInstance();
+
+    if (secure) {
+      xif.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, ""); // Compliant
+      xif.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, ""); // compliant
     }
 
-    protected Collection<Comment> getComments() {
-        Collection<Comment> allComments = Lists.newArrayList();
-        Collection<Comment> xmlComments = userComments.get(webSession.getUserName());
-        if (xmlComments != null) {
-            allComments.addAll(xmlComments);
-        }
-        allComments.addAll(comments);
-        return allComments.stream().sorted(Comparator.comparing(Comment::getDateTime).reversed()).collect(Collectors.toList());
-    }
+    var xsr = xif.createXMLStreamReader(new StringReader(xml));
 
-    /**
-     * Notice this parse method is not a "trick" to get the XXE working, we need to catch some of the exception which
-     * might happen during when users post message (we want to give feedback track progress etc). In real life the
-     * XmlMapper bean defined above will be used automatically and the Comment class can be directly used in the
-     * controller method (instead of a String)
-     */
-    protected Comment parseXml(String xml, boolean secure) throws JAXBException, XMLStreamException {
-        var jc = JAXBContext.newInstance(Comment.class);
-        var xif = XMLInputFactory.newInstance();
-        
-        if (secure) {
-        	xif.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, ""); // Compliant
-        	xif.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");  // compliant
-        }
-        
-        var xsr = xif.createXMLStreamReader(new StringReader(xml));
+    var unmarshaller = jc.createUnmarshaller();
+    return (Comment) unmarshaller.unmarshal(xsr);
+  }
 
-        var unmarshaller = jc.createUnmarshaller();
-        return (Comment) unmarshaller.unmarshal(xsr);
+  protected Optional<Comment> parseJson(String comment) {
+    ObjectMapper mapper = new ObjectMapper();
+    try {
+      return of(mapper.readValue(comment, Comment.class));
+    } catch (IOException e) {
+      return empty();
     }
+  }
 
-    protected Optional<Comment> parseJson(String comment) {
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            return of(mapper.readValue(comment, Comment.class));
-        } catch (IOException e) {
-            return empty();
-        }
+  public void addComment(Comment comment, boolean visibleForAllUsers) {
+    comment.setDateTime(DateTime.now().toString(fmt));
+    comment.setUser(webSession.getUserName());
+    if (visibleForAllUsers) {
+      comments.add(comment);
+    } else {
+      List<Comment> comments =
+          userComments.getOrDefault(webSession.getUserName(), new ArrayList<>());
+      comments.add(comment);
+      userComments.put(webSession.getUserName(), comments);
     }
-
-    public void addComment(Comment comment, boolean visibleForAllUsers) {
-        comment.setDateTime(DateTime.now().toString(fmt));
-        comment.setUser(webSession.getUserName());
-        if (visibleForAllUsers) {
-            comments.add(comment);
-        } else {
-            List<Comment> comments = userComments.getOrDefault(webSession.getUserName(), new ArrayList<>());
-            comments.add(comment);
-            userComments.put(webSession.getUserName(), comments);
-        }
-    }
+  }
 }

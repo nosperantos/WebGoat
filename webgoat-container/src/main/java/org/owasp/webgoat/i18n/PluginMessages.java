@@ -25,13 +25,12 @@
 
 package org.owasp.webgoat.i18n;
 
-import org.springframework.context.support.ReloadableResourceBundleMessageSource;
-
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Enumeration;
 import java.util.Properties;
+import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 
 /**
  * Message resource bundle for plugins.
@@ -40,47 +39,47 @@ import java.util.Properties;
  * @date 2/4/17
  */
 public class PluginMessages extends ReloadableResourceBundleMessageSource {
-    private static final String PROPERTIES_SUFFIX = ".properties";
+  private static final String PROPERTIES_SUFFIX = ".properties";
 
-    private Language language;
+  private Language language;
 
-    public PluginMessages(Messages messages, Language language) {
-        this.language = language;
-        this.setParentMessageSource(messages);
-        this.setBasename("WebGoatLabels");
+  public PluginMessages(Messages messages, Language language) {
+    this.language = language;
+    this.setParentMessageSource(messages);
+    this.setBasename("WebGoatLabels");
+  }
+
+  @Override
+  protected PropertiesHolder refreshProperties(String filename, PropertiesHolder propHolder) {
+    Properties properties = new Properties();
+    long lastModified = System.currentTimeMillis();
+
+    Enumeration<URL> resources = null;
+    try {
+      resources =
+          Thread.currentThread().getContextClassLoader().getResources(filename + PROPERTIES_SUFFIX);
+      while (resources.hasMoreElements()) {
+        URL resource = resources.nextElement();
+        String sourcePath = resource.toURI().toString().replace(PROPERTIES_SUFFIX, "");
+        PropertiesHolder holder = super.refreshProperties(sourcePath, propHolder);
+        properties.putAll(holder.getProperties());
+      }
+    } catch (IOException | URISyntaxException e) {
+      logger.error("Unable to read plugin message", e);
     }
 
-    @Override
-    protected PropertiesHolder refreshProperties(String filename, PropertiesHolder propHolder) {
-        Properties properties = new Properties();
-        long lastModified = System.currentTimeMillis();
+    return new PropertiesHolder(properties, lastModified);
+  }
 
-        Enumeration<URL> resources = null;
-        try {
-            resources = Thread.currentThread().getContextClassLoader().getResources(filename + PROPERTIES_SUFFIX);
-            while (resources.hasMoreElements()) {
-                URL resource = resources.nextElement();
-                String sourcePath = resource.toURI().toString().replace(PROPERTIES_SUFFIX, "");
-                PropertiesHolder holder = super.refreshProperties(sourcePath, propHolder);
-                properties.putAll(holder.getProperties());
-            }
-        } catch (IOException | URISyntaxException e) {
-            logger.error("Unable to read plugin message", e);
-        }
+  public Properties getMessages() {
+    return getMergedProperties(language.getLocale()).getProperties();
+  }
 
-        return new PropertiesHolder(properties, lastModified);
-    }
+  public String getMessage(String code, Object... args) {
+    return getMessage(code, args, language.getLocale());
+  }
 
-
-    public Properties getMessages() {
-        return getMergedProperties(language.getLocale()).getProperties();
-    }
-
-    public String getMessage(String code, Object... args) {
-        return getMessage(code, args, language.getLocale());
-    }
-
-    public String getMessage(String code, String defaultValue, Object... args) {
-        return super.getMessage(code, args, defaultValue, language.getLocale());
-    }
+  public String getMessage(String code, String defaultValue, Object... args) {
+    return super.getMessage(code, args, defaultValue, language.getLocale());
+  }
 }

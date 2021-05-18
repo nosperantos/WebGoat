@@ -29,12 +29,12 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 public class InsecureLoginTask extends AssignmentEndpoint {
 
-    @PostMapping("/InsecureLogin/task")
-    @ResponseBody
-    public AttackResult completed(@RequestParam String username, @RequestParam String password) {
-    	if (username.toString().equals("CaptainJack") && password.toString().equals("BlackPearl")) {
-    		return success(this).build();
-    	}
-        return failed(this).build();
+  @PostMapping("/InsecureLogin/task")
+  @ResponseBody
+  public AttackResult completed(@RequestParam String username, @RequestParam String password) {
+    if (username.toString().equals("CaptainJack") && password.toString().equals("BlackPearl")) {
+      return success(this).build();
     }
+    return failed(this).build();
+  }
 }

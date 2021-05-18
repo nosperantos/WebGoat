@@ -1,4 +1,3 @@
-
 /*
  * This file is part of WebGoat, an Open Web Application Security Project utility. For details, please see http://www.owasp.org/
  *
@@ -23,6 +22,12 @@
 
 package org.owasp.webgoat.sql_injection.advanced;
 
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import javax.sql.DataSource;
 import org.owasp.webgoat.assignments.AssignmentEndpoint;
 import org.owasp.webgoat.assignments.AttackResult;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -30,53 +35,46 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.sql.DataSource;
-import java.io.IOException;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-
-
 @RestController
 public class SqlInjectionLesson6b extends AssignmentEndpoint {
 
-    private final DataSource dataSource;
+  private final DataSource dataSource;
 
-    public SqlInjectionLesson6b(DataSource dataSource) {
-        this.dataSource = dataSource;
+  public SqlInjectionLesson6b(DataSource dataSource) {
+    this.dataSource = dataSource;
+  }
+
+  @PostMapping("/SqlInjectionAdvanced/attack6b")
+  @ResponseBody
+  public AttackResult completed(@RequestParam String userid_6b) throws IOException {
+    if (userid_6b.equals(getPassword())) {
+      return success(this).build();
+    } else {
+      return failed(this).build();
     }
+  }
 
-    @PostMapping("/SqlInjectionAdvanced/attack6b")
-    @ResponseBody
-    public AttackResult completed(@RequestParam String userid_6b) throws IOException {
-        if (userid_6b.equals(getPassword())) {
-            return success(this).build();
-        } else {
-            return failed(this).build();
+  protected String getPassword() {
+    String password = "dave";
+    try (Connection connection = dataSource.getConnection()) {
+      String query = "SELECT password FROM user_system_data WHERE user_name = 'dave'";
+      try {
+        Statement statement =
+            connection.createStatement(
+                ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+        ResultSet results = statement.executeQuery(query);
+
+        if (results != null && results.first()) {
+          password = results.getString("password");
         }
+      } catch (SQLException sqle) {
+        sqle.printStackTrace();
+        // do nothing
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+      // do nothing
     }
-
-    protected String getPassword() {
-        String password = "dave";
-        try (Connection connection = dataSource.getConnection()) {
-            String query = "SELECT password FROM user_system_data WHERE user_name = 'dave'";
-            try {
-                Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
-                        ResultSet.CONCUR_READ_ONLY);
-                ResultSet results = statement.executeQuery(query);
-
-                if (results != null && results.first()) {
-                    password = results.getString("password");
-                }
-            } catch (SQLException sqle) {
-                sqle.printStackTrace();
-                // do nothing
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            // do nothing
-        }
-        return (password);
-    }
+    return (password);
+  }
 }

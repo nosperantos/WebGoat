@@ -22,42 +22,42 @@
 
 package org.owasp.webgoat.sql_injection.introduction;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.owasp.webgoat.plugins.LessonTest;
-import org.owasp.webgoat.sql_injection.SqlLessonTest;
-import org.owasp.webgoat.sql_injection.introduction.SqlInjection;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-
 import static org.hamcrest.Matchers.is;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**a
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.owasp.webgoat.sql_injection.SqlLessonTest;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+
+/**
+ * a
+ *
  * @author nbaars
  * @since 6/16/17.
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 public class SqlInjectionLesson6bTest extends SqlLessonTest {
 
-    @Test
-    public void submitCorrectPassword() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.post("/SqlInjectionAdvanced/attack6b")
+  @Test
+  public void submitCorrectPassword() throws Exception {
+    mockMvc
+        .perform(
+            MockMvcRequestBuilders.post("/SqlInjectionAdvanced/attack6b")
                 .param("userid_6b", "passW0rD"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.lessonCompleted", is(true)));
+  }
 
-                .andExpect(status().isOk()).andExpect(jsonPath("$.lessonCompleted", is(true)));
-    }
-
-    @Test
-    public void submitWrongPassword() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.post("/SqlInjectionAdvanced/attack6b")
+  @Test
+  public void submitWrongPassword() throws Exception {
+    mockMvc
+        .perform(
+            MockMvcRequestBuilders.post("/SqlInjectionAdvanced/attack6b")
                 .param("userid_6b", "John"))
-
-                .andExpect(status().isOk()).andExpect(jsonPath("$.lessonCompleted", is(false)));
-    }
-
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.lessonCompleted", is(false)));
+  }
 }

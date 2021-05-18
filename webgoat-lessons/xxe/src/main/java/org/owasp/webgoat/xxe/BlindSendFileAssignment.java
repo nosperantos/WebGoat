@@ -1,5 +1,13 @@
 package org.owasp.webgoat.xxe;
 
+import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import javax.annotation.PostConstruct;
+import javax.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.owasp.webgoat.assignments.AssignmentEndpoint;
 import org.owasp.webgoat.assignments.AssignmentHints;
@@ -12,39 +20,30 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.annotation.PostConstruct;
-import javax.servlet.http.HttpServletRequest;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-
-import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
-
 /**
  * ************************************************************************************************
  * This file is part of WebGoat, an Open Web Application Security Project utility. For details,
  * please see http://www.owasp.org/
- * <p>
- * Copyright (c) 2002 - 20014 Bruce Mayhew
- * <p>
- * This program is free software; you can redistribute it and/or modify it under the terms of the
+ *
+ * <p>Copyright (c) 2002 - 20014 Bruce Mayhew
+ *
+ * <p>This program is free software; you can redistribute it and/or modify it under the terms of the
  * GNU General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * <p>
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- * <p>
- * You should have received a copy of the GNU General Public License along with this program; if
+ *
+ * <p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * <p>You should have received a copy of the GNU General Public License along with this program; if
  * not, write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
  * 02111-1307, USA.
- * <p>
- * Getting Source ==============
- * <p>
- * Source for this application is maintained at https://github.com/WebGoat/WebGoat, a repository for free software
- * projects.
+ *
+ * <p>Getting Source ==============
+ *
+ * <p>Source for this application is maintained at https://github.com/WebGoat/WebGoat, a repository
+ * for free software projects.
+ *
  * <p>
  *
  * @author nbaars
@@ -53,49 +52,60 @@ import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
  */
 @Slf4j
 @RestController
-@AssignmentHints({"xxe.blind.hints.1", "xxe.blind.hints.2", "xxe.blind.hints.3", "xxe.blind.hints.4", "xxe.blind.hints.5"})
+@AssignmentHints({
+  "xxe.blind.hints.1",
+  "xxe.blind.hints.2",
+  "xxe.blind.hints.3",
+  "xxe.blind.hints.4",
+  "xxe.blind.hints.5"
+})
 public class BlindSendFileAssignment extends AssignmentEndpoint {
 
-    static final String CONTENTS = "WebGoat 8.0 rocks... (" + randomAlphabetic(10) + ")";
-    @Value("${webgoat.user.directory}")
-    private String webGoatHomeDirectory;
-    @Autowired
-    private Comments comments;
+  static final String CONTENTS = "WebGoat 8.0 rocks... (" + randomAlphabetic(10) + ")";
 
-    @PostConstruct
-    public void createSecretFileWithRandomContents() {
-        File targetDirectory = new File(webGoatHomeDirectory, "/XXE");
-        if (!targetDirectory.exists()) {
-            targetDirectory.mkdir();
-        }
-        try {
-            Files.writeString(new File(targetDirectory, "secret.txt").toPath(), CONTENTS, StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            log.error("Unable to write 'secret.txt' to '{}", targetDirectory);
-        }
+  @Value("${webgoat.user.directory}")
+  private String webGoatHomeDirectory;
+
+  @Autowired private Comments comments;
+
+  @PostConstruct
+  public void createSecretFileWithRandomContents() {
+    File targetDirectory = new File(webGoatHomeDirectory, "/XXE");
+    if (!targetDirectory.exists()) {
+      targetDirectory.mkdir();
+    }
+    try {
+      Files.writeString(
+          new File(targetDirectory, "secret.txt").toPath(), CONTENTS, StandardCharsets.UTF_8);
+    } catch (IOException e) {
+      log.error("Unable to write 'secret.txt' to '{}", targetDirectory);
+    }
+  }
+
+  @PostMapping(
+      path = "xxe/blind",
+      consumes = MediaType.ALL_VALUE,
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  @ResponseBody
+  public AttackResult addComment(HttpServletRequest request, @RequestBody String commentStr) {
+    // Solution is posted as a separate comment
+    if (commentStr.contains(CONTENTS)) {
+      return success(this).build();
     }
 
-    @PostMapping(path = "xxe/blind", consumes = MediaType.ALL_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    @ResponseBody
-    public AttackResult addComment(HttpServletRequest request, @RequestBody String commentStr) {
-        //Solution is posted as a separate comment
-        if (commentStr.contains(CONTENTS)) {
-            return success(this).build();
-        }
-
-        try {
-        	boolean secure = false;
-        	if (null != request.getSession().getAttribute("applySecurity")) {
-        		secure = true;
-        	}
-            Comment comment = comments.parseXml(commentStr, secure);
-            if (CONTENTS.contains(comment.getText())) {
-                comment.setText("Nice try, you need to send the file to WebWolf");
-            }
-            comments.addComment(comment, false);
-        } catch (Exception e) {
-            return failed(this).output(e.toString()).build();
-        }
-        return failed(this).build();
+    try {
+      boolean secure = false;
+      if (null != request.getSession().getAttribute("applySecurity")) {
+        secure = true;
+      }
+      Comment comment = comments.parseXml(commentStr, secure);
+      if (CONTENTS.contains(comment.getText())) {
+        comment.setText("Nice try, you need to send the file to WebWolf");
+      }
+      comments.addComment(comment, false);
+    } catch (Exception e) {
+      return failed(this).output(e.toString()).build();
     }
+    return failed(this).build();
+  }
 }

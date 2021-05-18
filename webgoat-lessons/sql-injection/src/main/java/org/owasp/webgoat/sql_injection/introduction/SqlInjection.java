@@ -28,13 +28,13 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class SqlInjection extends Lesson {
-    @Override
-    public Category getDefaultCategory() {
-        return Category.INJECTION;
-    }
+  @Override
+  public Category getDefaultCategory() {
+    return Category.INJECTION;
+  }
 
-    @Override
-    public String getTitle() {
-        return "1.sql.injection.title";
-    }
+  @Override
+  public String getTitle() {
+    return "1.sql.injection.title";
+  }
 }

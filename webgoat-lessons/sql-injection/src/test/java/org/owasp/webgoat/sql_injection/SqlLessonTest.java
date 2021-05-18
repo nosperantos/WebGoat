@@ -22,24 +22,21 @@
 
 package org.owasp.webgoat.sql_injection;
 
+import static org.mockito.Mockito.when;
+
 import org.junit.Before;
 import org.owasp.webgoat.plugins.LessonTest;
 import org.owasp.webgoat.sql_injection.introduction.SqlInjection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import static org.mockito.Mockito.when;
-
 public class SqlLessonTest extends LessonTest {
 
-    @Autowired
-    private SqlInjection sql = new SqlInjection();
+  @Autowired private SqlInjection sql = new SqlInjection();
 
-    @Before
-    public void setup() {
-        when(webSession.getCurrentLesson()).thenReturn(sql);
-        this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).build();
-    }
-
-
+  @Before
+  public void setup() {
+    when(webSession.getCurrentLesson()).thenReturn(sql);
+    this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).build();
+  }
 }

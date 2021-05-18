@@ -22,6 +22,8 @@
 
 package org.owasp.webgoat.sql_injection.advanced;
 
+import java.sql.*;
+import javax.sql.DataSource;
 import org.owasp.webgoat.assignments.AssignmentEndpoint;
 import org.owasp.webgoat.assignments.AssignmentHints;
 import org.owasp.webgoat.assignments.AttackResult;
@@ -31,69 +33,84 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.sql.DataSource;
-import java.sql.*;
-
-
 @RestController
-@AssignmentHints(value = {"SqlStringInjectionHint-advanced-6a-1", "SqlStringInjectionHint-advanced-6a-2", "SqlStringInjectionHint-advanced-6a-3",
-        "SqlStringInjectionHint-advanced-6a-4"})
+@AssignmentHints(
+    value = {
+      "SqlStringInjectionHint-advanced-6a-1",
+      "SqlStringInjectionHint-advanced-6a-2",
+      "SqlStringInjectionHint-advanced-6a-3",
+      "SqlStringInjectionHint-advanced-6a-4"
+    })
 public class SqlInjectionLesson6a extends AssignmentEndpoint {
 
-    private final DataSource dataSource;
+  private final DataSource dataSource;
 
-    public SqlInjectionLesson6a(DataSource dataSource) {
-        this.dataSource = dataSource;
-    }
+  public SqlInjectionLesson6a(DataSource dataSource) {
+    this.dataSource = dataSource;
+  }
 
-    @PostMapping("/SqlInjectionAdvanced/attack6a")
-    @ResponseBody
-    public AttackResult completed(@RequestParam String userid_6a) {
-        return injectableQuery(userid_6a);
-        // The answer: Smith' union select userid,user_name, password,cookie,cookie, cookie,userid from user_system_data --
-    }
+  @PostMapping("/SqlInjectionAdvanced/attack6a")
+  @ResponseBody
+  public AttackResult completed(@RequestParam String userid_6a) {
+    return injectableQuery(userid_6a);
+    // The answer: Smith' union select userid,user_name, password,cookie,cookie, cookie,userid from
+    // user_system_data --
+  }
 
-    public AttackResult injectableQuery(String accountName) {
-        String query = "";
-        try (Connection connection = dataSource.getConnection()) {
-            boolean usedUnion = true;
-            query = "SELECT * FROM user_data WHERE last_name = '" + accountName + "'";
-            //Check if Union is used
-            if (!accountName.matches("(?i)(^[^-/*;)]*)(\\s*)UNION(.*$)")) {
-                usedUnion = false;
-            }
-            try (Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
-                    ResultSet.CONCUR_READ_ONLY)) {
-                ResultSet results = statement.executeQuery(query);
+  public AttackResult injectableQuery(String accountName) {
+    String query = "";
+    try (Connection connection = dataSource.getConnection()) {
+      boolean usedUnion = true;
+      query = "SELECT * FROM user_data WHERE last_name = '" + accountName + "'";
+      // Check if Union is used
+      if (!accountName.matches("(?i)(^[^-/*;)]*)(\\s*)UNION(.*$)")) {
+        usedUnion = false;
+      }
+      try (Statement statement =
+          connection.createStatement(
+              ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY)) {
+        ResultSet results = statement.executeQuery(query);
 
-                if ((results != null) && (results.first())) {
-                    ResultSetMetaData resultsMetaData = results.getMetaData();
-                    StringBuffer output = new StringBuffer();
+        if ((results != null) && (results.first())) {
+          ResultSetMetaData resultsMetaData = results.getMetaData();
+          StringBuffer output = new StringBuffer();
 
-                    output.append(SqlInjectionLesson5a.writeTable(results, resultsMetaData));
+          output.append(SqlInjectionLesson5a.writeTable(results, resultsMetaData));
 
-                    String appendingWhenSucceded;
-                    if (usedUnion)
-                        appendingWhenSucceded = "Well done! Can you also figure out a solution, by appending a new Sql Statement?";
-                    else
-                        appendingWhenSucceded = "Well done! Can you also figure out a solution, by using a UNION?";
-                    results.last();
+          String appendingWhenSucceded;
+          if (usedUnion)
+            appendingWhenSucceded =
+                "Well done! Can you also figure out a solution, by appending a new Sql Statement?";
+          else
+            appendingWhenSucceded =
+                "Well done! Can you also figure out a solution, by using a UNION?";
+          results.last();
 
-                    if (output.toString().contains("dave") && output.toString().contains("passW0rD")) {
-                        output.append(appendingWhenSucceded);
-                        return success(this).feedback("sql-injection.advanced.6a.success").feedbackArgs(output.toString()).output(" Your query was: " + query).build();
-                    } else {
-                        return failed(this).output(output.toString() + "<br> Your query was: " + query).build();
-                    }
-                } else {
-                    return failed(this).feedback("sql-injection.advanced.6a.no.results").output(" Your query was: " + query).build();
-                }
-            } catch (SQLException sqle) {
-                return failed(this).output(sqle.getMessage() + "<br> Your query was: " + query).build();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return failed(this).output(this.getClass().getName() + " : " + e.getMessage() + "<br> Your query was: " + query).build();
+          if (output.toString().contains("dave") && output.toString().contains("passW0rD")) {
+            output.append(appendingWhenSucceded);
+            return success(this)
+                .feedback("sql-injection.advanced.6a.success")
+                .feedbackArgs(output.toString())
+                .output(" Your query was: " + query)
+                .build();
+          } else {
+            return failed(this).output(output.toString() + "<br> Your query was: " + query).build();
+          }
+        } else {
+          return failed(this)
+              .feedback("sql-injection.advanced.6a.no.results")
+              .output(" Your query was: " + query)
+              .build();
         }
+      } catch (SQLException sqle) {
+        return failed(this).output(sqle.getMessage() + "<br> Your query was: " + query).build();
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+      return failed(this)
+          .output(
+              this.getClass().getName() + " : " + e.getMessage() + "<br> Your query was: " + query)
+          .build();
     }
+  }
 }

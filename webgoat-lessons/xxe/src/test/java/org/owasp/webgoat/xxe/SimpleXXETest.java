@@ -22,20 +22,19 @@
 
 package org.owasp.webgoat.xxe;
 
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import org.hamcrest.CoreMatchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.owasp.webgoat.plugins.LessonTest;
-import org.owasp.webgoat.xxe.XXE;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * @author nbaars
@@ -44,47 +43,63 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringJUnit4ClassRunner.class)
 public class SimpleXXETest extends LessonTest {
 
-    @Autowired
-    private XXE xxe;
+  @Autowired private XXE xxe;
 
-    @Before
-    public void setup() {
-        when(webSession.getCurrentLesson()).thenReturn(xxe);
-        this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).build();
-    }
+  @Before
+  public void setup() {
+    when(webSession.getCurrentLesson()).thenReturn(xxe);
+    this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).build();
+  }
 
-    @Test
-    public void workingAttack() throws Exception {
-        //Call with XXE injection
-        mockMvc.perform(MockMvcRequestBuilders.post("/xxe/simple")
-                .content("<?xml version=\"1.0\" standalone=\"yes\" ?><!DOCTYPE user [<!ENTITY root SYSTEM \"file:///\"> ]><comment><text>&root;</text></comment>"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.feedback", CoreMatchers.is(messages.getMessage("assignment.solved"))));
-    }
+  @Test
+  public void workingAttack() throws Exception {
+    // Call with XXE injection
+    mockMvc
+        .perform(
+            MockMvcRequestBuilders.post("/xxe/simple")
+                .content(
+                    "<?xml version=\"1.0\" standalone=\"yes\" ?><!DOCTYPE user [<!ENTITY root"
+                        + " SYSTEM \"file:///\"> ]><comment><text>&root;</text></comment>"))
+        .andExpect(status().isOk())
+        .andExpect(
+            jsonPath("$.feedback", CoreMatchers.is(messages.getMessage("assignment.solved"))));
+  }
 
-    @Test
-    public void postingJsonCommentShouldNotSolveAssignment() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.post("/xxe/simple")
+  @Test
+  public void postingJsonCommentShouldNotSolveAssignment() throws Exception {
+    mockMvc
+        .perform(
+            MockMvcRequestBuilders.post("/xxe/simple")
                 .content("<comment><text>test</ext></comment>"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.feedback", CoreMatchers.is(messages.getMessage("assignment.not.solved"))));
-    }
+        .andExpect(status().isOk())
+        .andExpect(
+            jsonPath("$.feedback", CoreMatchers.is(messages.getMessage("assignment.not.solved"))));
+  }
 
-    @Test
-    public void postingXmlCommentWithoutXXEShouldNotSolveAssignment() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.post("/xxe/simple")
-                .content("<?xml version=\"1.0\" standalone=\"yes\" ?><comment><text>&root;</text></comment>"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.feedback", CoreMatchers.is(messages.getMessage("assignment.not.solved"))));
-    }
+  @Test
+  public void postingXmlCommentWithoutXXEShouldNotSolveAssignment() throws Exception {
+    mockMvc
+        .perform(
+            MockMvcRequestBuilders.post("/xxe/simple")
+                .content(
+                    "<?xml version=\"1.0\" standalone=\"yes\""
+                        + " ?><comment><text>&root;</text></comment>"))
+        .andExpect(status().isOk())
+        .andExpect(
+            jsonPath("$.feedback", CoreMatchers.is(messages.getMessage("assignment.not.solved"))));
+  }
 
-    @Test
-    public void postingPlainTextShouldShwoException() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.post("/xxe/simple")
-                .content("test"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.output", CoreMatchers.startsWith("javax.xml.bind.UnmarshalException\\n - with linked exception")))
-                .andExpect(jsonPath("$.feedback", CoreMatchers.is(messages.getMessage("assignment.not.solved"))));
-    }
-
+  @Test
+  public void postingPlainTextShouldShwoException() throws Exception {
+    mockMvc
+        .perform(MockMvcRequestBuilders.post("/xxe/simple").content("test"))
+        .andExpect(status().isOk())
+        .andExpect(
+            jsonPath(
+                "$.output",
+                CoreMatchers.startsWith(
+                    "javax.xml.bind.UnmarshalException\\n - with linked exception")))
+        .andExpect(
+            jsonPath("$.feedback", CoreMatchers.is(messages.getMessage("assignment.not.solved"))));
+  }
 }

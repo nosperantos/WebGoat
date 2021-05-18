@@ -22,27 +22,33 @@
 
 package org.owasp.webgoat.http_proxies;
 
+import javax.servlet.http.HttpServletRequest;
 import org.owasp.webgoat.assignments.AssignmentEndpoint;
 import org.owasp.webgoat.assignments.AttackResult;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
-
 @RestController
 public class HttpBasicsInterceptRequest extends AssignmentEndpoint {
 
-    @RequestMapping(path = "/HttpProxies/intercept-request", method = {RequestMethod.POST, RequestMethod.GET})
-    @ResponseBody
-    public AttackResult completed(@RequestHeader(value = "x-request-intercepted", required = false) Boolean headerValue,
-                                  @RequestParam(value = "changeMe", required = false) String paramValue, HttpServletRequest request) {
-        if (HttpMethod.POST.matches(request.getMethod())) {
-            return failed(this).feedback("http-proxies.intercept.failure").build();
-        }
-        if (headerValue != null && paramValue != null && headerValue && "Requests are tampered easily".equalsIgnoreCase(paramValue)) {
-            return success(this).feedback("http-proxies.intercept.success").build();
-        } else {
-            return failed(this).feedback("http-proxies.intercept.failure").build();
-        }
+  @RequestMapping(
+      path = "/HttpProxies/intercept-request",
+      method = {RequestMethod.POST, RequestMethod.GET})
+  @ResponseBody
+  public AttackResult completed(
+      @RequestHeader(value = "x-request-intercepted", required = false) Boolean headerValue,
+      @RequestParam(value = "changeMe", required = false) String paramValue,
+      HttpServletRequest request) {
+    if (HttpMethod.POST.matches(request.getMethod())) {
+      return failed(this).feedback("http-proxies.intercept.failure").build();
     }
+    if (headerValue != null
+        && paramValue != null
+        && headerValue
+        && "Requests are tampered easily".equalsIgnoreCase(paramValue)) {
+      return success(this).feedback("http-proxies.intercept.success").build();
+    } else {
+      return failed(this).feedback("http-proxies.intercept.failure").build();
+    }
+  }
 }
