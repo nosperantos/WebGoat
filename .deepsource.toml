@@ -1,0 +1,9 @@
+version = 1
+
+[[analyzers]]
+name = "javascript"
+enabled = true
+
+[[transformers]]
+name = "google-java-format"
+enabled = true
