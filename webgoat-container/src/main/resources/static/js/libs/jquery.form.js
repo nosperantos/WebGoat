@@ -558,9 +558,9 @@ $.fn.ajaxSubmit = function(options) {
             try {
                 if (s.extraData) {
                     for (var n in s.extraData) {
-                        if (s.extraData.hasOwnProperty(n)) {
+                        if (Object.prototype.hasOwnProperty.call(s.extraData, n)) {
                            // if using the $.param format that allows for multiple values with the same name
-                           if($.isPlainObject(s.extraData[n]) && s.extraData[n].hasOwnProperty('name') && s.extraData[n].hasOwnProperty('value')) {
+                           if($.isPlainObject(s.extraData[n]) && Object.prototype.hasOwnProperty.call(s.extraData.n, 'name') && Object.prototype.hasOwnProperty.call(s.extraData.n, 'value')) {
                                extraInputs.push(
                                $('<input type="hidden" name="'+s.extraData[n].name+'">').val(s.extraData[n].value)
                                    .appendTo(form)[0]);
