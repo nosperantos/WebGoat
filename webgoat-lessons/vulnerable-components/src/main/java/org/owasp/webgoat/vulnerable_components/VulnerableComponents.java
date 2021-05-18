@@ -28,14 +28,13 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class VulnerableComponents extends Lesson {
-    @Override
-    public Category getDefaultCategory() {
-        return Category.VULNERABLE_COMPONENTS;
-    }
+  @Override
+  public Category getDefaultCategory() {
+    return Category.VULNERABLE_COMPONENTS;
+  }
 
-    @Override
-    public String getTitle() {
-        return "vulnerable-components.title";
-    }
-
+  @Override
+  public String getTitle() {
+    return "vulnerable-components.title";
+  }
 }

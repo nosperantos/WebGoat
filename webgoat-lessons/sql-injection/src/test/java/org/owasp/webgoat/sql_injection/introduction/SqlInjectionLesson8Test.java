@@ -22,16 +22,16 @@
 
 package org.owasp.webgoat.sql_injection.introduction;
 
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.is;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.owasp.webgoat.sql_injection.SqlLessonTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.is;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * @author Benedikt Stuhrmann
@@ -40,67 +40,83 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringJUnit4ClassRunner.class)
 public class SqlInjectionLesson8Test extends SqlLessonTest {
 
-    @Test
-    public void oneAccount() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.post("/SqlInjection/attack8")
+  @Test
+  public void oneAccount() throws Exception {
+    mockMvc
+        .perform(
+            MockMvcRequestBuilders.post("/SqlInjection/attack8")
                 .param("name", "Smith")
                 .param("auth_tan", "3SL99A"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("lessonCompleted", is(false)))
+        .andExpect(
+            jsonPath("$.feedback", is(modifySpan(messages.getMessage("sql-injection.8.one")))))
+        .andExpect(jsonPath("$.output", containsString("<table><tr><th>")));
+  }
 
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("lessonCompleted", is(false)))
-                .andExpect(jsonPath("$.feedback", is(modifySpan(messages.getMessage("sql-injection.8.one")))))
-                .andExpect(jsonPath("$.output", containsString("<table><tr><th>")));
-    }
-
-    @Test
-    public void multipleAccounts() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.post("/SqlInjection/attack8")
+  @Test
+  public void multipleAccounts() throws Exception {
+    mockMvc
+        .perform(
+            MockMvcRequestBuilders.post("/SqlInjection/attack8")
                 .param("name", "Smith")
                 .param("auth_tan", "3SL99A' OR '1' = '1"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("lessonCompleted", is(true)))
+        .andExpect(
+            jsonPath("$.feedback", is(modifySpan(messages.getMessage("sql-injection.8.success")))))
+        .andExpect(
+            jsonPath(
+                "$.output",
+                containsString(
+                    "<tr><td>96134<\\/td><td>Bob<\\/td><td>Franco<\\/td><td>Marketing<\\/td><td>83700<\\/td><td>LO9S2V<\\/td><\\/tr>")));
+  }
 
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("lessonCompleted", is(true)))
-                .andExpect(jsonPath("$.feedback", is(modifySpan(messages.getMessage("sql-injection.8.success")))))
-                .andExpect(jsonPath("$.output", containsString("<tr><td>96134<\\/td><td>Bob<\\/td><td>Franco<\\/td><td>Marketing<\\/td><td>83700<\\/td><td>LO9S2V<\\/td><\\/tr>")));
-    }
-
-    @Test
-    public void wrongNameReturnsNoAccounts() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.post("/SqlInjection/attack8")
+  @Test
+  public void wrongNameReturnsNoAccounts() throws Exception {
+    mockMvc
+        .perform(
+            MockMvcRequestBuilders.post("/SqlInjection/attack8")
                 .param("name", "Smithh")
                 .param("auth_tan", "3SL99A"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("lessonCompleted", is(false)))
+        .andExpect(
+            jsonPath(
+                "$.feedback", is(modifySpan(messages.getMessage("sql-injection.8.no.results")))))
+        .andExpect(jsonPath("$.output").doesNotExist());
+  }
 
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("lessonCompleted", is(false)))
-                .andExpect(jsonPath("$.feedback", is(modifySpan(messages.getMessage("sql-injection.8.no.results")))))
-                .andExpect(jsonPath("$.output").doesNotExist());
-    }
-
-    @Test
-    public void wrongTANReturnsNoAccounts() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.post("/SqlInjection/attack8")
+  @Test
+  public void wrongTANReturnsNoAccounts() throws Exception {
+    mockMvc
+        .perform(
+            MockMvcRequestBuilders.post("/SqlInjection/attack8")
                 .param("name", "Smithh")
                 .param("auth_tan", ""))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("lessonCompleted", is(false)))
+        .andExpect(
+            jsonPath(
+                "$.feedback", is(modifySpan(messages.getMessage("sql-injection.8.no.results")))))
+        .andExpect(jsonPath("$.output").doesNotExist());
+  }
 
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("lessonCompleted", is(false)))
-                .andExpect(jsonPath("$.feedback", is(modifySpan(messages.getMessage("sql-injection.8.no.results")))))
-                .andExpect(jsonPath("$.output").doesNotExist());
-    }
-
-    @Test
-    public void malformedQueryReturnsError() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.post("/SqlInjection/attack8")
+  @Test
+  public void malformedQueryReturnsError() throws Exception {
+    mockMvc
+        .perform(
+            MockMvcRequestBuilders.post("/SqlInjection/attack8")
                 .param("name", "Smith")
                 .param("auth_tan", "3SL99A' OR '1' = '1'"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("lessonCompleted", is(false)))
+        .andExpect(
+            jsonPath("$.feedback", is(modifySpan(messages.getMessage("sql-injection.error")))))
+        .andExpect(jsonPath("$.output", containsString("feedback-negative")));
+  }
 
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("lessonCompleted", is(false)))
-                .andExpect(jsonPath("$.feedback", is(modifySpan(messages.getMessage("sql-injection.error")))))
-                .andExpect(jsonPath("$.output", containsString("feedback-negative")));
-    }
-
-    public static String modifySpan(String message) {
-        return message.replace("</span>", "<\\/span>");
-    }
+  public static String modifySpan(String message) {
+    return message.replace("</span>", "<\\/span>");
+  }
 }

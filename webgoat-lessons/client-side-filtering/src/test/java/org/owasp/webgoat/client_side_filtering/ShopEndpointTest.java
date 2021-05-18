@@ -22,21 +22,19 @@
 
 package org.owasp.webgoat.client_side_filtering;
 
+import static org.hamcrest.Matchers.is;
+import static org.owasp.webgoat.client_side_filtering.ClientSideFilteringFreeAssignment.SUPER_COUPON_CODE;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
+
 import org.hamcrest.CoreMatchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
 import org.owasp.webgoat.plugins.LessonTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-
-import static org.hamcrest.Matchers.is;
-import static org.mockito.Mockito.when;
-import static org.owasp.webgoat.client_side_filtering.ClientSideFilteringFreeAssignment.SUPER_COUPON_CODE;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
 
 /**
  * @author nbaars
@@ -45,39 +43,46 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standal
 @RunWith(SpringJUnit4ClassRunner.class)
 public class ShopEndpointTest extends LessonTest {
 
-    private MockMvc mockMvc;
+  private MockMvc mockMvc;
 
-    @Before
-    public void setup() {
-        ShopEndpoint shopEndpoint = new ShopEndpoint();
-        this.mockMvc = standaloneSetup(shopEndpoint).build();
-    }
+  @Before
+  public void setup() {
+    ShopEndpoint shopEndpoint = new ShopEndpoint();
+    this.mockMvc = standaloneSetup(shopEndpoint).build();
+  }
 
-    @Test
-    public void getSuperCoupon() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get("/clientSideFiltering/challenge-store/coupons/" + SUPER_COUPON_CODE))
-                .andExpect(jsonPath("$.code", CoreMatchers.is(SUPER_COUPON_CODE)))
-                .andExpect(jsonPath("$.discount", CoreMatchers.is(100)));
-    }
+  @Test
+  public void getSuperCoupon() throws Exception {
+    mockMvc
+        .perform(
+            MockMvcRequestBuilders.get(
+                "/clientSideFiltering/challenge-store/coupons/" + SUPER_COUPON_CODE))
+        .andExpect(jsonPath("$.code", CoreMatchers.is(SUPER_COUPON_CODE)))
+        .andExpect(jsonPath("$.discount", CoreMatchers.is(100)));
+  }
 
-    @Test
-    public void getCoupon() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get("/clientSideFiltering/challenge-store/coupons/webgoat"))
-                .andExpect(jsonPath("$.code", CoreMatchers.is("webgoat")))
-                .andExpect(jsonPath("$.discount", CoreMatchers.is(25)));
-    }
+  @Test
+  public void getCoupon() throws Exception {
+    mockMvc
+        .perform(MockMvcRequestBuilders.get("/clientSideFiltering/challenge-store/coupons/webgoat"))
+        .andExpect(jsonPath("$.code", CoreMatchers.is("webgoat")))
+        .andExpect(jsonPath("$.discount", CoreMatchers.is(25)));
+  }
 
-    @Test
-    public void askForUnknownCouponCode() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get("/clientSideFiltering/challenge-store/coupons/does-not-exists"))
-                .andExpect(jsonPath("$.code", CoreMatchers.is("no")))
-                .andExpect(jsonPath("$.discount", CoreMatchers.is(0)));
-    }
+  @Test
+  public void askForUnknownCouponCode() throws Exception {
+    mockMvc
+        .perform(
+            MockMvcRequestBuilders.get(
+                "/clientSideFiltering/challenge-store/coupons/does-not-exists"))
+        .andExpect(jsonPath("$.code", CoreMatchers.is("no")))
+        .andExpect(jsonPath("$.discount", CoreMatchers.is(0)));
+  }
 
-    @Test
-    public void fetchAllTheCouponsShouldContainGetItForFree() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get("/clientSideFiltering/challenge-store/coupons/"))
-                .andExpect(jsonPath("$.codes[3].code", is("get_it_for_free")));
-    }
-
+  @Test
+  public void fetchAllTheCouponsShouldContainGetItForFree() throws Exception {
+    mockMvc
+        .perform(MockMvcRequestBuilders.get("/clientSideFiltering/challenge-store/coupons/"))
+        .andExpect(jsonPath("$.codes[3].code", is("get_it_for_free")));
+  }
 }

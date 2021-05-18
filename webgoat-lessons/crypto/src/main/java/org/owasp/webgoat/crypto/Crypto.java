@@ -28,14 +28,13 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class Crypto extends Lesson {
-    @Override
-    public Category getDefaultCategory() {
-        return Category.GENERAL;
-    }
+  @Override
+  public Category getDefaultCategory() {
+    return Category.GENERAL;
+  }
 
-    @Override
-    public String getTitle() {
-        return "6.crypto.title";//first lesson in general
-    }
-
+  @Override
+  public String getTitle() {
+    return "6.crypto.title"; // first lesson in general
+  }
 }

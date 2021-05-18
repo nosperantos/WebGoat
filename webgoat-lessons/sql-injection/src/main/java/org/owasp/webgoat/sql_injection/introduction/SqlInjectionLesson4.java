@@ -1,4 +1,3 @@
-
 /*
  * This file is part of WebGoat, an Open Web Application Security Project utility. For details, please see http://www.owasp.org/
  *
@@ -23,6 +22,10 @@
 
 package org.owasp.webgoat.sql_injection.introduction;
 
+import static java.sql.ResultSet.*;
+
+import java.sql.*;
+import javax.sql.DataSource;
 import org.owasp.webgoat.assignments.AssignmentEndpoint;
 import org.owasp.webgoat.assignments.AssignmentHints;
 import org.owasp.webgoat.assignments.AttackResult;
@@ -31,47 +34,43 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.sql.DataSource;
-import java.sql.*;
-
-import static java.sql.ResultSet.*;
-
-
 @RestController
-@AssignmentHints(value = {"SqlStringInjectionHint4-1", "SqlStringInjectionHint4-2", "SqlStringInjectionHint4-3"})
+@AssignmentHints(
+    value = {"SqlStringInjectionHint4-1", "SqlStringInjectionHint4-2", "SqlStringInjectionHint4-3"})
 public class SqlInjectionLesson4 extends AssignmentEndpoint {
 
-    private final DataSource dataSource;
+  private final DataSource dataSource;
 
-    public SqlInjectionLesson4(DataSource dataSource) {
-        this.dataSource = dataSource;
-    }
+  public SqlInjectionLesson4(DataSource dataSource) {
+    this.dataSource = dataSource;
+  }
 
-    @PostMapping("/SqlInjection/attack4")
-    @ResponseBody
-    public AttackResult completed(@RequestParam String query) {
-        return injectableQuery(query);
-    }
+  @PostMapping("/SqlInjection/attack4")
+  @ResponseBody
+  public AttackResult completed(@RequestParam String query) {
+    return injectableQuery(query);
+  }
 
-    protected AttackResult injectableQuery(String query) {
-        try (Connection connection = dataSource.getConnection()) {
-            try (Statement statement = connection.createStatement(TYPE_SCROLL_INSENSITIVE, CONCUR_READ_ONLY)) {
-                statement.executeUpdate(query);
-                connection.commit();
-                ResultSet results = statement.executeQuery("SELECT phone from employees;");
-                StringBuffer output = new StringBuffer();
-                // user completes lesson if column phone exists
-                if (results.first()) {
-                    output.append("<span class='feedback-positive'>" + query + "</span>");
-                    return success(this).output(output.toString()).build();
-                } else {
-                    return failed(this).output(output.toString()).build();
-                }
-            } catch (SQLException sqle) {
-                return failed(this).output(sqle.getMessage()).build();
-            }
-        } catch (Exception e) {
-            return failed(this).output(this.getClass().getName() + " : " + e.getMessage()).build();
+  protected AttackResult injectableQuery(String query) {
+    try (Connection connection = dataSource.getConnection()) {
+      try (Statement statement =
+          connection.createStatement(TYPE_SCROLL_INSENSITIVE, CONCUR_READ_ONLY)) {
+        statement.executeUpdate(query);
+        connection.commit();
+        ResultSet results = statement.executeQuery("SELECT phone from employees;");
+        StringBuffer output = new StringBuffer();
+        // user completes lesson if column phone exists
+        if (results.first()) {
+          output.append("<span class='feedback-positive'>" + query + "</span>");
+          return success(this).output(output.toString()).build();
+        } else {
+          return failed(this).output(output.toString()).build();
         }
+      } catch (SQLException sqle) {
+        return failed(this).output(sqle.getMessage()).build();
+      }
+    } catch (Exception e) {
+      return failed(this).output(this.getClass().getName() + " : " + e.getMessage()).build();
     }
+  }
 }

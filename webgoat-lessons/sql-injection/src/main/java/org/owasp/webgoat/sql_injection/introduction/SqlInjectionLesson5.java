@@ -1,4 +1,3 @@
-
 /*
  * This file is part of WebGoat, an Open Web Application Security Project utility. For details, please see http://www.owasp.org/
  *
@@ -30,31 +29,30 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-
 @RestController
 @AssignmentHints(value = {"SqlStringInjectionHint5-a"})
 public class SqlInjectionLesson5 extends AssignmentEndpoint {
 
-    @PostMapping("/SqlInjection/attack5")
-    @ResponseBody
-    public AttackResult completed(String query) {
-        return injectableQuery(query);
-    }
+  @PostMapping("/SqlInjection/attack5")
+  @ResponseBody
+  public AttackResult completed(String query) {
+    return injectableQuery(query);
+  }
 
-    protected AttackResult injectableQuery(String query) {
-        try {
-            String regex = "(?i)^(grant alter table to [']?unauthorizedUser[']?)(?:[;]?)$";
-            StringBuffer output = new StringBuffer();
+  protected AttackResult injectableQuery(String query) {
+    try {
+      String regex = "(?i)^(grant alter table to [']?unauthorizedUser[']?)(?:[;]?)$";
+      StringBuffer output = new StringBuffer();
 
-            // user completes lesson if the query is correct
-            if (query.matches(regex)) {
-                output.append("<span class='feedback-positive'>" + query + "</span>");
-                return success(this).output(output.toString()).build();
-            } else {
-                return failed(this).output(output.toString()).build();
-            }
-        } catch (Exception e) {
-            return failed(this).output(this.getClass().getName() + " : " + e.getMessage()).build();
-        }
+      // user completes lesson if the query is correct
+      if (query.matches(regex)) {
+        output.append("<span class='feedback-positive'>" + query + "</span>");
+        return success(this).output(output.toString()).build();
+      } else {
+        return failed(this).output(output.toString()).build();
+      }
+    } catch (Exception e) {
+      return failed(this).output(this.getClass().getName() + " : " + e.getMessage()).build();
     }
+  }
 }

@@ -22,16 +22,21 @@
 
 package org.owasp.webgoat.jwt;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwsHeader;
+import io.jsonwebtoken.Jwt;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SigningKeyResolverAdapter;
+import io.jsonwebtoken.impl.TextCodec;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import javax.sql.DataSource;
-
 import org.apache.commons.lang3.StringUtils;
 import org.owasp.webgoat.assignments.AssignmentEndpoint;
 import org.owasp.webgoat.assignments.AssignmentHints;
@@ -43,15 +48,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwsHeader;
-import io.jsonwebtoken.Jwt;
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SigningKeyResolverAdapter;
-import io.jsonwebtoken.impl.TextCodec;
-
 /**
+ *
+ *
  * <pre>
  *  {
  *      "typ": "JWT",
@@ -76,120 +75,151 @@ import io.jsonwebtoken.impl.TextCodec;
  * @since 4/23/17.
  */
 @RestController
-@AssignmentHints({"jwt-final-hint1", "jwt-final-hint2", "jwt-final-hint3", "jwt-final-hint4", "jwt-final-hint5", "jwt-final-hint6"})
+@AssignmentHints({
+  "jwt-final-hint1",
+  "jwt-final-hint2",
+  "jwt-final-hint3",
+  "jwt-final-hint4",
+  "jwt-final-hint5",
+  "jwt-final-hint6"
+})
 public class JWTFinalEndpoint extends AssignmentEndpoint {
 
-    private final DataSource dataSource;
+  private final DataSource dataSource;
 
-    private JWTFinalEndpoint(DataSource dataSource) {
-        this.dataSource = dataSource;
-    }
+  private JWTFinalEndpoint(DataSource dataSource) {
+    this.dataSource = dataSource;
+  }
 
-    @PostMapping(path="/JWT/encode",produces=MediaType.TEXT_HTML_VALUE)
-    @ResponseBody
-    public String encode(@RequestParam("jsonHeader") String jsonHeader,
-    		@RequestParam("jsonPayload") String jsonPayload,
-    		@RequestParam("jsonSecret") String jsonSecret) throws NoSuchAlgorithmException {		
-		
-    	//System.out.println(jsonHeader);
-    	//System.out.println(jsonPayload);
-		String encodedHeader;
-		String encodedPayload;
-		String encodedSignature;
-		try {
-			encodedHeader = TextCodec.BASE64URL.encode(jsonHeader);
-			encodedPayload = TextCodec.BASE64URL.encode(jsonPayload);
-			if (jsonHeader.toLowerCase().contains("none")) {
-				encodedSignature="";
-			} else {
-				encodedSignature = TextCodec.BASE64URL.encode(getJWTSignature(jsonHeader, encodedHeader, encodedPayload, jsonSecret));
-			}
-		} catch (Exception e) {
-			encodedHeader="";
-			encodedPayload="signature type not supported in this tool, try jwt.io";
-			encodedSignature = "";
-		}
-		String result = "{\"encodedHeader\":\""+encodedHeader+"\",\"encodedPayload\":\""+encodedPayload+"\",\"encodedSignature\":\""+encodedSignature+"\"}";
-		//System.out.println(result);
-		return result;
-    }
-       
-    private byte[] getJWTSignature(String jsonHeader, String encodedHeader, String encodedPayload, String jsonSecret) throws NoSuchAlgorithmException, InvalidKeyException {
-    	String message = encodedHeader+"."+encodedPayload;
-  	  	String algorithm = "HmacSHA256";
-    	if (jsonHeader.equals("HS512")) {
-    		algorithm = "HmacSHA512";
-    	} 
-    	Mac macInstance = Mac.getInstance(algorithm);
-        SecretKeySpec secret_key = new SecretKeySpec(TextCodec.BASE64.decode(jsonSecret), algorithm);
-        macInstance.init(secret_key);
+  @PostMapping(path = "/JWT/encode", produces = MediaType.TEXT_HTML_VALUE)
+  @ResponseBody
+  public String encode(
+      @RequestParam("jsonHeader") String jsonHeader,
+      @RequestParam("jsonPayload") String jsonPayload,
+      @RequestParam("jsonSecret") String jsonSecret)
+      throws NoSuchAlgorithmException {
 
-        return macInstance.doFinal(message.getBytes(StandardCharsets.UTF_8));
+    // System.out.println(jsonHeader);
+    // System.out.println(jsonPayload);
+    String encodedHeader;
+    String encodedPayload;
+    String encodedSignature;
+    try {
+      encodedHeader = TextCodec.BASE64URL.encode(jsonHeader);
+      encodedPayload = TextCodec.BASE64URL.encode(jsonPayload);
+      if (jsonHeader.toLowerCase().contains("none")) {
+        encodedSignature = "";
+      } else {
+        encodedSignature =
+            TextCodec.BASE64URL.encode(
+                getJWTSignature(jsonHeader, encodedHeader, encodedPayload, jsonSecret));
+      }
+    } catch (Exception e) {
+      encodedHeader = "";
+      encodedPayload = "signature type not supported in this tool, try jwt.io";
+      encodedSignature = "";
     }
-    
-    @PostMapping(path="/JWT/decode",produces=MediaType.TEXT_HTML_VALUE)
-    @ResponseBody
-    public String decode(@RequestParam("jwtToken") String jwtToken) throws NoSuchAlgorithmException {		
-		try {
-			String encodedHeader = jwtToken.substring(0, jwtToken.indexOf("."));
-			String encodedPayload = jwtToken.substring(jwtToken.indexOf(".")+1, jwtToken.lastIndexOf("."));
-			String jsonHeader = TextCodec.BASE64URL.decodeToString(encodedHeader);
-			String jsonPayload = TextCodec.BASE64URL.decodeToString(encodedPayload);
-			return "{\"jsonHeader\":\""+jsonHeader.replace("\"", "\\\"")+"\",\"jsonPayload\":\""+jsonPayload.replace("\"", "\\\"").replace("\t","").replace("\r", "").replace("\n", "")+"\"}";
-		} catch (Exception e) {
-			return "{\"jsonHeader\":\"\",\"jsonPayload\":\"\"}";
-		}
-    }
-    
-    @PostMapping("/JWT/final/follow/{user}")
-    public @ResponseBody
-    String follow(@PathVariable("user") String user) {
-        if ("Jerry".equals(user)) {
-            return "Following yourself seems redundant";
-        } else {
-            return "You are now following Tom";
-        }
-    }
+    String result =
+        "{\"encodedHeader\":\""
+            + encodedHeader
+            + "\",\"encodedPayload\":\""
+            + encodedPayload
+            + "\",\"encodedSignature\":\""
+            + encodedSignature
+            + "\"}";
+    // System.out.println(result);
+    return result;
+  }
 
-    @PostMapping("/JWT/final/delete")
-    public @ResponseBody
-    AttackResult resetVotes(@RequestParam("token") String token) {
-        if (StringUtils.isEmpty(token)) {
-            return failed(this).feedback("jwt-invalid-token").build();
-        } else {
-            try {
-                final String[] errorMessage = {null};
-                Jwt jwt = Jwts.parser().setSigningKeyResolver(new SigningKeyResolverAdapter() {
-                    @Override
-                    public byte[] resolveSigningKeyBytes(JwsHeader header, Claims claims) {
+  private byte[] getJWTSignature(
+      String jsonHeader, String encodedHeader, String encodedPayload, String jsonSecret)
+      throws NoSuchAlgorithmException, InvalidKeyException {
+    String message = encodedHeader + "." + encodedPayload;
+    String algorithm = "HmacSHA256";
+    if (jsonHeader.equals("HS512")) {
+      algorithm = "HmacSHA512";
+    }
+    Mac macInstance = Mac.getInstance(algorithm);
+    SecretKeySpec secret_key = new SecretKeySpec(TextCodec.BASE64.decode(jsonSecret), algorithm);
+    macInstance.init(secret_key);
+
+    return macInstance.doFinal(message.getBytes(StandardCharsets.UTF_8));
+  }
+
+  @PostMapping(path = "/JWT/decode", produces = MediaType.TEXT_HTML_VALUE)
+  @ResponseBody
+  public String decode(@RequestParam("jwtToken") String jwtToken) throws NoSuchAlgorithmException {
+    try {
+      String encodedHeader = jwtToken.substring(0, jwtToken.indexOf("."));
+      String encodedPayload =
+          jwtToken.substring(jwtToken.indexOf(".") + 1, jwtToken.lastIndexOf("."));
+      String jsonHeader = TextCodec.BASE64URL.decodeToString(encodedHeader);
+      String jsonPayload = TextCodec.BASE64URL.decodeToString(encodedPayload);
+      return "{\"jsonHeader\":\""
+          + jsonHeader.replace("\"", "\\\"")
+          + "\",\"jsonPayload\":\""
+          + jsonPayload.replace("\"", "\\\"").replace("\t", "").replace("\r", "").replace("\n", "")
+          + "\"}";
+    } catch (Exception e) {
+      return "{\"jsonHeader\":\"\",\"jsonPayload\":\"\"}";
+    }
+  }
+
+  @PostMapping("/JWT/final/follow/{user}")
+  public @ResponseBody String follow(@PathVariable("user") String user) {
+    if ("Jerry".equals(user)) {
+      return "Following yourself seems redundant";
+    } else {
+      return "You are now following Tom";
+    }
+  }
+
+  @PostMapping("/JWT/final/delete")
+  public @ResponseBody AttackResult resetVotes(@RequestParam("token") String token) {
+    if (StringUtils.isEmpty(token)) {
+      return failed(this).feedback("jwt-invalid-token").build();
+    } else {
+      try {
+        final String[] errorMessage = {null};
+        Jwt jwt =
+            Jwts.parser()
+                .setSigningKeyResolver(
+                    new SigningKeyResolverAdapter() {
+                      @Override
+                      public byte[] resolveSigningKeyBytes(JwsHeader header, Claims claims) {
                         final String kid = (String) header.get("kid");
                         try (var connection = dataSource.getConnection()) {
-                            ResultSet rs = connection.createStatement().executeQuery("SELECT key FROM jwt_keys WHERE id = '" + kid + "'");
-                            while (rs.next()) {
-                                return TextCodec.BASE64.decode(rs.getString(1));
-                            }
+                          ResultSet rs =
+                              connection
+                                  .createStatement()
+                                  .executeQuery(
+                                      "SELECT key FROM jwt_keys WHERE id = '" + kid + "'");
+                          while (rs.next()) {
+                            return TextCodec.BASE64.decode(rs.getString(1));
+                          }
                         } catch (SQLException e) {
-                            errorMessage[0] = e.getMessage();
+                          errorMessage[0] = e.getMessage();
                         }
                         return null;
-                    }
-                }).parseClaimsJws(token);
-                if (errorMessage[0] != null) {
-                    return failed(this).output(errorMessage[0]).build();
-                }
-                Claims claims = (Claims) jwt.getBody();
-                String username = (String) claims.get("username");
-                if ("Jerry".equals(username)) {
-                    return failed(this).feedback("jwt-final-jerry-account").build();
-                }
-                if ("Tom".equals(username)) {
-                    return success(this).build();
-                } else {
-                    return failed(this).feedback("jwt-final-not-tom").build();
-                }
-            } catch (JwtException e) {
-                return failed(this).feedback("jwt-invalid-token").output(e.toString()).build();
-            }
+                      }
+                    })
+                .parseClaimsJws(token);
+        if (errorMessage[0] != null) {
+          return failed(this).output(errorMessage[0]).build();
         }
+        Claims claims = (Claims) jwt.getBody();
+        String username = (String) claims.get("username");
+        if ("Jerry".equals(username)) {
+          return failed(this).feedback("jwt-final-jerry-account").build();
+        }
+        if ("Tom".equals(username)) {
+          return success(this).build();
+        } else {
+          return failed(this).feedback("jwt-final-not-tom").build();
+        }
+      } catch (JwtException e) {
+        return failed(this).feedback("jwt-invalid-token").output(e.toString()).build();
+      }
     }
+  }
 }

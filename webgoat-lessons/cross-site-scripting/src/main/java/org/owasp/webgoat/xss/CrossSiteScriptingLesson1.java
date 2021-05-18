@@ -1,4 +1,3 @@
-
 /*
  * This file is part of WebGoat, an Open Web Application Security Project utility. For details, please see http://www.owasp.org/
  *
@@ -30,17 +29,16 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-
 @RestController
 public class CrossSiteScriptingLesson1 extends AssignmentEndpoint {
 
-    @PostMapping("/CrossSiteScripting/attack1")
-    @ResponseBody
-    public AttackResult completed(@RequestParam String answer_xss_1) {
-        if (answer_xss_1.toString().toLowerCase().equals("yes")) {
-            return success(this).build();
-        } else {
-            return failed(this).feedback("xss.lesson1.failure").build();
-        }
+  @PostMapping("/CrossSiteScripting/attack1")
+  @ResponseBody
+  public AttackResult completed(@RequestParam String answer_xss_1) {
+    if (answer_xss_1.toString().toLowerCase().equals("yes")) {
+      return success(this).build();
+    } else {
+      return failed(this).feedback("xss.lesson1.failure").build();
     }
+  }
 }

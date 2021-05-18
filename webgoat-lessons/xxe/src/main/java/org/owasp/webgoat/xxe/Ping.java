@@ -22,37 +22,37 @@
 
 package org.owasp.webgoat.xxe;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import lombok.extern.slf4j.Slf4j;
 import org.owasp.webgoat.session.WebSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
-
 @Slf4j
 public class Ping {
 
-    @Value("${webgoat.user.directory}")
-    private String webGoatHomeDirectory;
-    @Autowired
-    private WebSession webSession;
+  @Value("${webgoat.user.directory}")
+  private String webGoatHomeDirectory;
 
-    @RequestMapping(method = RequestMethod.GET)
-    @ResponseBody
-    public String logRequest(@RequestHeader("User-Agent") String userAgent, @RequestParam(required = false) String text) {
-        String logLine = String.format("%s %s %s", "GET", userAgent, text);
-        log.debug(logLine);
-        File logFile = new File(webGoatHomeDirectory, "/XXE/log" + webSession.getUserName() + ".txt");
-        try {
-            try (PrintWriter pw = new PrintWriter(logFile)) {
-                pw.println(logLine);
-            }
-        } catch (FileNotFoundException e) {
-            log.error("Error occurred while writing the logfile", e);
-        }
-        return "";
+  @Autowired private WebSession webSession;
+
+  @RequestMapping(method = RequestMethod.GET)
+  @ResponseBody
+  public String logRequest(
+      @RequestHeader("User-Agent") String userAgent, @RequestParam(required = false) String text) {
+    String logLine = String.format("%s %s %s", "GET", userAgent, text);
+    log.debug(logLine);
+    File logFile = new File(webGoatHomeDirectory, "/XXE/log" + webSession.getUserName() + ".txt");
+    try {
+      try (PrintWriter pw = new PrintWriter(logFile)) {
+        pw.println(logLine);
+      }
+    } catch (FileNotFoundException e) {
+      log.error("Error occurred while writing the logfile", e);
     }
+    return "";
+  }
 }

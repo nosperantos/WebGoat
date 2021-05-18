@@ -35,62 +35,60 @@ import org.springframework.validation.BindException;
 @ExtendWith(MockitoExtension.class)
 public class UserValidatorTest {
 
-    @Mock
-    private UserRepository mockUserRepository;
+  @Mock private UserRepository mockUserRepository;
 
-    @InjectMocks
-    private UserValidator userValidator;
+  @InjectMocks private UserValidator userValidator;
 
-    @Test
-    public void validUserFormShouldNotHaveErrors() {
-        var validUserForm = new UserForm();
-        validUserForm.setUsername("guest");
-        validUserForm.setMatchingPassword("123");
-        validUserForm.setPassword("123");
-        BindException errors = new BindException(validUserForm, "validUserForm");
+  @Test
+  public void validUserFormShouldNotHaveErrors() {
+    var validUserForm = new UserForm();
+    validUserForm.setUsername("guest");
+    validUserForm.setMatchingPassword("123");
+    validUserForm.setPassword("123");
+    BindException errors = new BindException(validUserForm, "validUserForm");
 
-        userValidator.validate(validUserForm, errors);
+    userValidator.validate(validUserForm, errors);
 
-        Assertions.assertThat(errors.hasErrors()).isFalse();
-    }
+    Assertions.assertThat(errors.hasErrors()).isFalse();
+  }
 
-    @Test
-    public void whenPasswordDoNotMatchShouldFail() {
-        var validUserForm = new UserForm();
-        validUserForm.setUsername("guest");
-        validUserForm.setMatchingPassword("123");
-        validUserForm.setPassword("124");
-        BindException errors = new BindException(validUserForm, "validUserForm");
+  @Test
+  public void whenPasswordDoNotMatchShouldFail() {
+    var validUserForm = new UserForm();
+    validUserForm.setUsername("guest");
+    validUserForm.setMatchingPassword("123");
+    validUserForm.setPassword("124");
+    BindException errors = new BindException(validUserForm, "validUserForm");
 
-        userValidator.validate(validUserForm, errors);
+    userValidator.validate(validUserForm, errors);
 
-        Assertions.assertThat(errors.hasErrors()).isTrue();
-    }
+    Assertions.assertThat(errors.hasErrors()).isTrue();
+  }
 
-    @Test
-    public void registerExistingUserAgainShouldFail() {
-        var username = "guest";
-        var password = "123";
-        var validUserForm = new UserForm();
-        validUserForm.setUsername(username);
-        validUserForm.setMatchingPassword(password);
-        validUserForm.setPassword("124");
-        BindException errors = new BindException(validUserForm, "validUserForm");
-        var webGoatUser = new WebGoatUser(username, password);
-        when(mockUserRepository.findByUsername(validUserForm.getUsername())).thenReturn(webGoatUser);
+  @Test
+  public void registerExistingUserAgainShouldFail() {
+    var username = "guest";
+    var password = "123";
+    var validUserForm = new UserForm();
+    validUserForm.setUsername(username);
+    validUserForm.setMatchingPassword(password);
+    validUserForm.setPassword("124");
+    BindException errors = new BindException(validUserForm, "validUserForm");
+    var webGoatUser = new WebGoatUser(username, password);
+    when(mockUserRepository.findByUsername(validUserForm.getUsername())).thenReturn(webGoatUser);
 
-        userValidator.validate(validUserForm, errors);
+    userValidator.validate(validUserForm, errors);
 
-        Assertions.assertThat(errors.hasErrors()).isTrue();
-    }
+    Assertions.assertThat(errors.hasErrors()).isTrue();
+  }
 
-    @Test
-    public void testSupports() {
-        Assertions.assertThat(userValidator.supports(UserForm.class)).isTrue();
-    }
+  @Test
+  public void testSupports() {
+    Assertions.assertThat(userValidator.supports(UserForm.class)).isTrue();
+  }
 
-    @Test
-    public void testSupports_false() {
-        Assertions.assertThat(userValidator.supports(UserService.class)).isFalse();
-    }
+  @Test
+  public void testSupports_false() {
+    Assertions.assertThat(userValidator.supports(UserService.class)).isFalse();
+  }
 }
