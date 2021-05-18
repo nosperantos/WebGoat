@@ -4461,14 +4461,14 @@ var options = {
 };
 
 exports.get = function(key) {
-    if (!options.hasOwnProperty(key))
+    if (!Object.prototype.hasOwnProperty.call(options, key))
         throw new Error("Unknown config key: " + key);
 
     return options[key];
 };
 
 exports.set = function(key, value) {
-    if (!options.hasOwnProperty(key))
+    if (!Object.prototype.hasOwnProperty.call(options, key))
         throw new Error("Unknown config key: " + key);
 
     options[key] = value;
@@ -7196,7 +7196,7 @@ var CstyleBehaviour = function(options) {
         var quotes = session.$mode.$quotes || defaultQuotes;
 
         var selected = session.doc.getTextRange(range);
-        if (!range.isMultiLine() && quotes.hasOwnProperty(selected)) {
+        if (!range.isMultiLine() && Object.prototype.hasOwnProperty.call(quotes, selected)) {
             initContext(editor);
             var line = session.doc.getLine(range.start.row);
             var rightChar = line.substring(range.start.column + 1, range.start.column + 2);
@@ -21624,7 +21624,7 @@ exports.version = "1.4.1";
                     }
                     if (!window.ace)
                         window.ace = a;
-                    for (var key in a) if (a.hasOwnProperty(key))
+                    for (var key in a) if (Object.prototype.hasOwnProperty.call(a, key))
                         window.ace[key] = a[key];
                     window.ace["default"] = window.ace;
                     if (typeof module == "object" && typeof exports == "object" && module) {

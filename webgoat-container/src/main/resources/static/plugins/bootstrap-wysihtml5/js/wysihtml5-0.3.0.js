@@ -144,7 +144,7 @@ window['rangy'] = (function() {
     if ({}.hasOwnProperty) {
         api.util.extend = function(o, props) {
             for (var i in props) {
-                if (props.hasOwnProperty(i)) {
+                if (Object.prototype.hasOwnProperty.call(props, i)) {
                     o[i] = props[i];
                 }
             }
