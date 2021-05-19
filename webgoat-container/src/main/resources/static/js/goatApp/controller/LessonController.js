@@ -154,7 +154,7 @@ define(['jquery',
             };
 
             this.testHandler = function(param) {
-                console.log('test handler');
+                
                 this.lessonContentView.showTestParam(param);
             };
 

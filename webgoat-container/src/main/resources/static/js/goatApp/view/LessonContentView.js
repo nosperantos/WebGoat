@@ -157,12 +157,12 @@ define(['jquery',
             },
 
             onErrorResponse: function (data, b, c) {
-                console.error(data);
+                
         	if (data.status == 403) {
         		this.renderFeedback(data.responseText);
         	}
-                console.error(b);
-                console.error(c);
+                
+                
                 return false;
             },
 
