@@ -9,10 +9,10 @@ function loadVotes() {
             for (var i = 1; i <= 5; i++) {
                 totalVotes = totalVotes + votes[i];
             }
-            console.log(totalVotes);
+            
             for (var i = 1; i <= 5; i++) {
                 var percent = votes[i] * 100 / totalVotes;
-                console.log(percent);
+                
                 var progressBar = $('#progressBar' + i);
                 progressBar.width(Math.round(percent) * 2 + '%');
                 $("#nrOfVotes" + i).html(votes[i]);

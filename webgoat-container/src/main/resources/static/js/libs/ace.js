@@ -51,8 +51,8 @@ var define = function(module, deps, payload) {
         if (define.original)
             define.original.apply(this, arguments);
         else {
-            console.error("dropping module because define wasn\'t a string.");
-            console.trace();
+            
+            
         }
         return;
     }
@@ -4366,15 +4366,15 @@ var optionsProvider = {
 };
 
 function warn(message) {
-    if (typeof console != "undefined" && console.warn)
+    if ()
         console.warn.apply(console, arguments);
 }
 
 function reportError(msg, data) {
     var e = new Error(msg);
     e.data = data;
-    if (typeof console == "object" && console.error)
-        console.error(e);
+    if ()
+        
     setTimeout(function() { throw e; });
 }
 
@@ -4555,11 +4555,7 @@ var reportErrorIfPathIsNotConfigured = function() {
         && !options.modePath && !options.themePath
         && !Object.keys(options.$moduleUrls).length
     ) {
-        console.error(
-            "Unable to infer path to ace from script src,",
-            "use ace.config.set('basePath', 'path') to enable dynamic loading of modes and themes",
-            "or with webpack use ace/webpack-resolver"
-        );
+        
         reportErrorIfPathIsNotConfigured = function() {};
     }
 };
@@ -7659,7 +7655,7 @@ ace.define("ace/apply_delta",["require","exports","module"], function(require, e
 "use strict";
 
 function throwDeltaError(delta, errorText){
-    console.log("Invalid Delta:", delta);
+    
     throw "Invalid Delta: " + errorText;
 }
 
@@ -7948,15 +7944,15 @@ var Document = function(textOrLines) {
         return lines;
     };
     this.insertLines = function(row, lines) {
-        console.warn("Use of document.insertLines is deprecated. Use the insertFullLines method instead.");
+        
         return this.insertFullLines(row, lines);
     };
     this.removeLines = function(firstRow, lastRow) {
-        console.warn("Use of document.removeLines is deprecated. Use the removeFullLines method instead.");
+        
         return this.removeFullLines(firstRow, lastRow);
     };
     this.insertNewLine = function(position) {
-        console.warn("Use of document.insertNewLine is deprecated. Use insertMergedLines(position, ['', '']) instead.");
+        
         return this.insertMergedLines(position, ["", ""]);
     };
     this.insert = function(position, text) {
@@ -10948,7 +10944,7 @@ EditSession.$uid = 0;
         }
 
         if (useWrapMode && this.$wrapData.length != this.doc.getLength()) {
-            console.error("doc.getLength() and $wrapData.length have to be the same!");
+            
         }
         this.$updating = false;
 
@@ -12113,7 +12109,7 @@ MultiHashHandler.prototype = HashHandler.prototype;
             var modifier = keyUtil.KEY_MODS[parts[i]];
             if (modifier == null) {
                 if (typeof console != "undefined")
-                    console.error("invalid modifier " + parts[i] + " in " + keys);
+                    
                 return false;
             }
             hashId |= modifier;
@@ -15677,13 +15673,13 @@ var Gutter = function(parentEl) {
 
     this.addGutterDecoration = function(row, className) {
         if (window.console)
-            console.warn && console.warn("deprecated use session.addGutterDecoration");
+            
         this.session.addGutterDecoration(row, className);
     };
 
     this.removeGutterDecoration = function(row, className) {
         if (window.console)
-            console.warn && console.warn("deprecated use session.removeGutterDecoration");
+            
         this.session.removeGutterDecoration(row, className);
     };
 
@@ -19413,13 +19409,13 @@ var WorkerClient = function(topLevelNamespaces, mod, classname, workerUrl, impor
                 this.reportError(msg.data);
                 break;
             case "log":
-                window.console && console.log && console.log.apply(console, msg.data);
+                 && console.log.apply(console, msg.data);
                 break;
         }
     };
     
     this.reportError = function(err) {
-        window.console && console.error && console.error(err);
+         && 
     };
 
     this.$normalizePath = function(path) {
@@ -19456,7 +19452,7 @@ var WorkerClient = function(topLevelNamespaces, mod, classname, workerUrl, impor
             this.$worker.postMessage({event: event, data: {data: data.data}});
         }
         catch(ex) {
-            console.error(ex.stack);
+            
         }
     };
 

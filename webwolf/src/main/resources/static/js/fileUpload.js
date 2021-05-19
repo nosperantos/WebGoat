@@ -8,7 +8,7 @@ $(document).ready(function() {
 
 $(document).on('click','.fa-files-o',function(){
     var link = $('#fileLink').attr("href");
-    console.log("testing" + document.protocol + "//" + (document.hostname || document.pathname + link));
+    
 
 
     document.execCommand('copy');

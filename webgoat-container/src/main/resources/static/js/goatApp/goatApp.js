@@ -21,7 +21,7 @@ define(['jquery',
                 $.getJSON('service/labels.mvc', function(data) {
                     window.polyglot = new Polyglot({phrases: data});//i18n polyglot labels
                     asyncErrorHandler.init();
-                    console.log('about to create app router');//default js
+                    //default js
                     var goatRouter = new Router();//backbone router
                 });//jquery
 

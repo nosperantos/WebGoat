@@ -63,7 +63,7 @@ define(['jquery',
 
             // shim to support xss lesson
             webgoat.customjs.phoneHome = function (e) {
-                console.log('phoneHome invoked');
+                
                 webgoat.customjs.jquery.ajax({
                     method: "POST",
                     url: "/WebGoat/CrossSiteScripting/phone-home-xss",
@@ -74,7 +74,7 @@ define(['jquery',
                     contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
                     success: function (data) {
                         //devs leave stuff like this in all the time
-                        console.log('phone home said '  + JSON.stringify(data));
+                        
                     }
                 });
             }
@@ -85,7 +85,7 @@ define(['jquery',
          * Constructor of Goat App Router invoked by goatApp.js new Router().
          */
         initialize: function () {
-        	console.log('initialize goat app router');
+        	
             this.menuController = new MenuController({menuView: new MenuView()});
             this.titleView = new TitleView();
             this.lessonController = new LessonController({lessonContentView: new LessonContentView(), titleView: this.titleView}),
